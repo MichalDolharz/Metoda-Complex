@@ -3,16 +3,19 @@ import numpy as np
 
 
 class Point():
-    def __init__(self, cubeConstraints, constraintsFuns):
+    def __init__(self, cubeConstraints, constraintsFuns, id):
+
+        # id punktu
+        self.id = id
 
         # liczba wspolrzednych
-        varCount = int(len(cubeConstraints))
+        xCount = int(len(cubeConstraints))
 
         # liczba funkcji ograniczen
         functions = int(len(constraintsFuns))
 
         # przygotowanie list
-        variables = [None] * varCount
+        x = [None] * xCount
         result = [None] * functions
 
         # zmienna do zliczania liczby prob generowania wspolrzednych
@@ -28,7 +31,7 @@ class Point():
             counter += 1
 
             # losowanie wspolrzednych
-            for it in range(0, varCount):
+            for it in range(0, xCount):
 
                 # poczatek zakresu losowania
                 startValue = cubeConstraints[it][0]
@@ -37,13 +40,13 @@ class Point():
                 endValue = cubeConstraints[it][1]
 
                 # losowanie
-                variables[it] = np.random.uniform(startValue, endValue)
+                x[it] = np.random.uniform(startValue, endValue)
 
             # print("Wylosowano: x=", variables[0], " y=", variables[1])
 
             # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
             for it in range(0, functions):
-                result[it] = constraintsFuns[it](variables)
+                result[it] = constraintsFuns[it](x)
 
                 # pierwsza funkcja, ktora zwroci wartosc spoza obszaru powoduje powtorzenie losowania wspolrzednych
                 if result[it] > 0:
@@ -61,20 +64,21 @@ class Point():
                 print("Za podejsciem: ", counter)
                 break
 
-        self.var = variables
+        self.x = x
 
     def display(self):
 
-        for it in range(0, len(self.var)):
-            if self.var[it] < 0:
+        for it in range(0, len(self.x)):
+            if self.x[it] < 0:
                 eqStr = "="
             else:
                 eqStr = "= "
             print(" x" + str(it), eqStr, '%.12f' %
-                  (self.var[it]), end='')
+                  (self.x[it]), end='')
 
+    # zwraca tablice wspolrzednych punktu
     def get(self):
-        return self.var
+        return self.x
 
         '''fig, ax = plt.subplots()
 

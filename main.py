@@ -23,6 +23,12 @@ def f3(var):
     return -var[2]
 
 
+def objectiveFun(var):
+    x = var[0]
+    y = var[1]
+    return np.power(x-2, 2) + np.power(y-2, 2)
+
+
 def main():
 
     cubeConstraints = [[-5, 5], [-5, 5]]
