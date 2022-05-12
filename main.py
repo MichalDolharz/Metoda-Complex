@@ -39,5 +39,10 @@ def main():
 
     print(b.get())
 
+    def f(x): return eval(input("Podaj funkcje, np np.sin(x): "))
+    x = int(input("Podaj dla jakiego x: "))
+    y = f(x)
+    print("Wynik: ", y)
+
 
 main()
