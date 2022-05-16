@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from point import Point
 from simplex import Simplex
+from math import *
 
 
 def info(thing):
@@ -29,20 +30,34 @@ def objectiveFun(var):
     return np.power(x-2, 2) + np.power(y-2, 2)
 
 
+def f(var):
+    return var[0] + var[1]
+
+
+def objFunction(x):
+    # eval() wykonuje funkcje zapisana w stringu o ile się da.
+    # To oznacza, ze zamiast podania funkcji
+    # mozna napisac dowolna instrukcje pythona,
+    # a to niebezpieczne i trzeba to jakos zabezpieczyc.
+    return eval(input("Podaj funkcje, np np.sin(x): "))
+
+
 def main():
 
-    cubeConstraints = [[-5, 5], [-5, 5]]
+    cubeConstraints = [[-5, 5], [-5, 5], [1, 1], [1, 1]]
     constraintsFuns = [f1, f2]
 
-    b = Simplex(cubeConstraints, constraintsFuns)
+    b = Simplex()
+    b.fill(cubeConstraints, constraintsFuns, objFunction)
     b.display()
+    #print(b.objFunValue(f, [1, 2]))
+    print("main ", b.centroid(f))
 
     print(b.get())
 
-    def f(x): return eval(input("Podaj funkcje, np np.sin(x): "))
-    x = int(input("Podaj dla jakiego x: "))
-    y = f(x)
-    print("Wynik: ", y)
+    # x = int(input("Podaj wartosc x: "))
+    # y = f(x)
+    # print("Wynik: ", y)
 
 
 main()

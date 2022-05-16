@@ -3,67 +3,10 @@ import numpy as np
 
 
 class Point():
-    def __init__(self, cubeConstraints, constraintsFuns, id):
+    def __init__(self, x, id):
 
         # id punktu
         self.id = id
-
-        # liczba wspolrzednych
-        xCount = int(len(cubeConstraints))
-
-        # liczba funkcji ograniczen
-        functions = int(len(constraintsFuns))
-
-        # przygotowanie list
-        x = [None] * xCount
-        result = [None] * functions
-
-        # zmienna do zliczania liczby prob generowania wspolrzednych
-        counter = 0
-
-        # losowanie wspolrzednych punktu do skutku
-        while True:
-
-            # flaga wyjscia z petli
-            foundFlag = True
-
-            # zwiekszenie licznika prob
-            counter += 1
-
-            # losowanie wspolrzednych
-            for it in range(0, xCount):
-
-                # poczatek zakresu losowania
-                startValue = cubeConstraints[it][0]
-
-                # koniec zakresu losowania
-                endValue = cubeConstraints[it][1]
-
-                # losowanie
-                x[it] = np.random.uniform(startValue, endValue)
-
-            # print("Wylosowano: x=", variables[0], " y=", variables[1])
-
-            # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
-            for it in range(0, functions):
-                result[it] = constraintsFuns[it](x)
-
-                # pierwsza funkcja, ktora zwroci wartosc spoza obszaru powoduje powtorzenie losowania wspolrzednych
-                if result[it] > 0:
-                    # print("losowanie nieudane: f", it+1, " result: ", result[it], " aaa: ", result[0])
-                    foundFlag = False
-                    break
-
-            # zabezpieczenie przed nieplanowanym zapetleniem programu
-            if counter >= 100:
-                print("za dużo iteracji")
-                break
-
-            # jezeli wylosowane wspolrzedne sa poprawne, to sa zwracane
-            if foundFlag:
-                print("Za podejsciem: ", counter)
-                break
-
         self.x = x
 
     def display(self):
