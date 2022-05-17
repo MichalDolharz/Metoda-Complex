@@ -1,0 +1,16 @@
+Startując z punktu 1:
+
+Sprawdzamy, odległość pozostałych punktów osobno dla każdej współrzędnej
+
+Opcja 1) Wszystkie wsp. wskazują na ten sam punkt
+Wynik - P1 łaczy się z tym punktem
+
+Opcja 2) Wsp. wskazują na różne punkty (obojętnie które i ile wskazuje na ten sam)
+Sprawdzamy, który z tych punktów jest najbliżej (odległość w układzie wsp.).
+Wynik - P1 łączy się z tym najbliższym punktem.
+
+Kolejny punkt jest szukany od ostatnio dodanego.
+
+Uwagi:
+- wolne, niepołaczone punkty są zebrane w jednej tablicy, z której są usuwane przy połączeniu
+- ostatnie połączenie jest automatycznie z pierwszym punktem

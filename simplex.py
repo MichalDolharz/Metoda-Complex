@@ -126,7 +126,25 @@ class Simplex():
 
         return Point(new_point, x_p_id)
 
-    # def move()
+    def dist(self, point1, point2):
+        print("a")
+        # def move()
+
+    def checkSides(self):
+
+        result = []
+        worst = 0
+        for point_it in self.pointsCount:
+
+            if point_it == self.pointsCount-1:
+                result.append(self.dist(self.points[point_it], self.points[0]))
+            else:
+                result.append(
+                    self.dist(self.points[point_it], self.points[point_it+1]))
+
+            if result[-1] > worst:
+                worst = result[-1]
+                id_worst = point_it
 
     def centroid(self, objFunction, centrumFlag=False):
 
@@ -241,7 +259,9 @@ class Simplex():
 
         for var in self.points:
             v = var.get()
-            ax.scatter(v[0], v[1])
+            ax.scatter(v[0], v[1], label=var.getID())
+
+        ax.legend()
 
         ax.grid(True)
 
