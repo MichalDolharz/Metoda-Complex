@@ -19,6 +19,12 @@ class Point():
             print(" x" + str(it), eqStr, '%.12f' %
                   (self.x[it]), end='')
 
+    def move(self, new_x):
+        self.x = new_x
+
+    def getID(self):
+        return self.id
+
     # zwraca tablice wspolrzednych punktu
     def get(self):
         return self.x

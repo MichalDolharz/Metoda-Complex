@@ -11,11 +11,15 @@ def info(thing):
 
 def f1(var):
     #print("f1", end=' ')
+    #print("f1 var[0]:", var[0])
+    #print("f1 var[1]:", var[1])
     return var[0]+var[1]-2  # <= 0
 
 
 def f2(var):
     #print("f2", end=' ')
+    #print("f2 var[0]:", var[0])
+    #print("f2 var[1]:", var[1])
     return np.power(var[0], 2)-var[1]  # <= 0
 
 
@@ -44,16 +48,18 @@ def objFunction(x):
 
 def main():
 
-    cubeConstraints = [[-5, 5], [-5, 5], [1, 1], [1, 1]]
+    cubeConstraints = [[-5, 5], [-5, 5]]
     constraintsFuns = [f1, f2]
 
     b = Simplex()
-    b.fill(cubeConstraints, constraintsFuns, objFunction)
+    b.fill(cubeConstraints, constraintsFuns, objectiveFun)
     b.display()
     #print(b.objFunValue(f, [1, 2]))
-    print("main ", b.centroid(f))
+    #print("main ", b.centroid(f))
 
     print(b.get())
+
+    b.plot2()
 
     # x = int(input("Podaj wartosc x: "))
     # y = f(x)
