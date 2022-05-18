@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from point import Point
-from simplex import Simplex
+from complex import Complex
 from math import *
 
 
@@ -51,19 +51,13 @@ def main():
     cubeConstraints = [[-5, 5], [-5, 5]]
     constraintsFuns = [f1, f2]
 
-    b = Simplex()
-    b.fill(cubeConstraints, constraintsFuns, objectiveFun)
-    b.display()
-    #print(b.objFunValue(f, [1, 2]))
-    #print("main ", b.centroid(f))
+    epsilon = 0.001
 
-    print(b.get())
+    kompleks = Complex()
+    kompleks.fill(cubeConstraints, constraintsFuns, objectiveFun, epsilon)
+    kompleks.display()
 
-    b.plot2()
-
-    # x = int(input("Podaj wartosc x: "))
-    # y = f(x)
-    # print("Wynik: ", y)
+    kompleks.plotPolygon(objectiveFun)
 
 
 main()
