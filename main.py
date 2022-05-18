@@ -10,21 +10,21 @@ def info(thing):
 
 
 def f1(var):
-    #print("f1", end=' ')
-    #print("f1 var[0]:", var[0])
-    #print("f1 var[1]:", var[1])
+    # print("f1", end=' ')
+    # print("f1 var[0]:", var[0])
+    # print("f1 var[1]:", var[1])
     return var[0]+var[1]-2  # <= 0
 
 
 def f2(var):
-    #print("f2", end=' ')
-    #print("f2 var[0]:", var[0])
-    #print("f2 var[1]:", var[1])
+    # print("f2", end=' ')
+    # print("f2 var[0]:", var[0])
+    # print("f2 var[1]:", var[1])
     return np.power(var[0], 2)-var[1]  # <= 0
 
 
 def f3(var):
-    #print("f3", end=' ')
+    # print("f3", end=' ')
     return -var[2]
 
 
@@ -57,7 +57,16 @@ def main():
     kompleks.fill(cubeConstraints, constraintsFuns, objectiveFun, epsilon)
     kompleks.display()
 
+    # kompleks.run(objectiveFun)
+
     kompleks.plotPolygon(objectiveFun)
+
+    centroid = kompleks.centroid(objectiveFun)
+    print("centroid:", end='')
+    centroid.display()
+    kompleks.reflect2(centroid)
+    kompleks.plotPolygon(objectiveFun)
+    print(kompleks.pointsCount)
 
 
 main()

@@ -103,9 +103,103 @@ class Complex():
                         nextPointFlag = True
             del tmpPoint
 
-    # oblicza centroid, czyli "umowny" srodek obszaru simplexu
+    def addPointToComplex(self, objFunction, constraintsFuns, cubeConstraints):
+        x = []
+        for it in range(0, self.x_variables):
+            l = cubeConstraints[it][0]
+            u = cubeConstraints[it][1]
+            r = np.random.uniform(0, 1)
+            x.append(u + r * abs(u - l))
+
+            functions = int(len(constraintsFuns))
+
+            while nextPointFlag == False:  # x_var_it <= self.x_variables:
+
+                # za kazdym razem sprawdza, czy wspolrzedne x spelnia wszystkie funkcje
+                for it in range(0, functions):
+                    result = constraintsFuns[it](tmpPoint.get())
+
+                    # sprawdzenie, czy wspolrzedna punktu spelnia funkcje ograniczen
+                    # (czyli czy w danej "osi" punkt "lezy w obszarze dopuszczalnym")
+                    # jezeli nie, to przesuniecie w strone centrum zaakceptowanych punktow o polowe odleglosci
+                    if result > 0:
+                        # wyliczenie centroidu i przesuniecie punktu o polowe, sprawdzenie czy ok, jak ok to sprawdza kolejna, jak nie to przesuniecie
+                        # centroid mozna liczyc wczesniej, bo dopoki nie bedzie liczony nowy punkt to centroid sie nie zmieni
+
+                        tmpPoint = self.moveHalfwayToCentrum(
+                            tmpPoint, objFunction)
+
+                        nextPointFlag = False
+                        break
+
+                    # jezeli wspolrzedna punktu spelnia funkcje ograniczen, to jest akceptowana
+                    # i program przechodzi do kolejnej wspolrzednej
+
+                    if it == functions-1:
+                        self.points.append(
+                            Point(tmpPoint.get(), tmpPoint.getID()))
+
+                        self.pointsCount += 1
+                        nextPointFlag = True
+
+    # uruchamia algorytm
+    def run(self, objFunction, constraintsFuns, cubeConstraints):
+        # sprawdza, czy warunek stopu jest spelniony
+        self.checkEpsilon()
+
+        # jezeli warunek stopu jest spelniony, to konczy petle
+        if self.stop == True:
+            print("tu bedzie break")
+
+        # wyznacza centroid
+        centroid = self.centroid(objFunction)
+
+        # sprawdza, czy centroid znajduje sie w obszarze dopuszczalnym
+        for fun in constraintsFuns:
+            result = constraintsFuns(centroid.get())
+
+            # jezeli centroid nie jest w obszarze dopuszczalnym
+            if result > 0:
+                self.addPointToComplex()
+                print("tutaj run() msui sie zakonczyc i zostac uruchomiony ponownie")
+
+    def reflect2(self, centroid):
+
+        p = self.points[0]
+        c = centroid.get()
+        pp = p.get()
+
+        alpha = 1.3
+
+        #x = c[:]
+        x = []
+
+        print("\nc", c)
+        for x_it in range(0, self.x_variables):
+            #x[x_it] += (1+alpha)*c[x_it] - pp[x_it]*alpha
+            x.append((1+alpha)*c[x_it] - pp[x_it]*alpha)
+
+        print("\nx:", x)
+
+        self.points[0].set(x)
+        self.points[0].display()
+
+    def reflect(self, centroid, point):
+
+        p = point.get()
+        c = centroid.get()
+
+        alpha = 1.3
+
+        x = []
+
+        for x_it in self.x_variables:
+            x.append((1-alpha)*c[x_it] - p[x_it])
+
+        point.set(x)
 
     # przesuwa podany punkt o polowe odleglosci od centrum
+
     def moveHalfwayToCentrum(self, x_point, objFunction):
 
         new_point = []
