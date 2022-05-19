@@ -61,12 +61,21 @@ def main():
 
     kompleks.plotPolygon(objectiveFun)
 
-    centroid = kompleks.centroid(objectiveFun)
+    worst_point = kompleks.getWorstPoint(objectiveFun)
+    centroid = kompleks.centroid(worst_point)
     print("centroid:", end='')
     centroid.display()
     kompleks.reflect2(centroid)
     kompleks.plotPolygon(objectiveFun)
     print(kompleks.pointsCount)
+
+    print("\nUWAGA! Poniewaz na razie dozwolone jest odbicie punktu wzgledem centroidu poza obszar dopuszczalny,")
+    print("mozliwe jest, ze centrum rowniez wystapi poza obszarem dopuszczalnym.")
+    print("Gdy tak sie stanie, program przy probie dodania punktu ponizej moze sie zapetlic,")
+    print("probojac caly czas przesunac nowy punkt w strone centrum, ktore powinno byc w obszarze dopuszczalnym.")
+    print("Wykrywanie, czy punkt znajduje sie w obszarze dopuszczalnym jest zaimplementowane.")
+    kompleks.addPointToComplex(objectiveFun, constraintsFuns, cubeConstraints)
+    kompleks.plotPolygon(objectiveFun)
 
 
 main()

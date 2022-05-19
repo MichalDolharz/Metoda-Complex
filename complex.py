@@ -9,7 +9,7 @@ class Complex():
     def __init__(self):
         self.points = []
         self.pointsCount = 0
-        self.x_variables = 0
+        self.xCount = 0
         self.epsilon = 0
         self.stop = False
 
@@ -19,17 +19,17 @@ class Complex():
         self.epsilon = epsilon
 
         # liczba wspolrzednych, zaklada sie, ze kazda wsp. ma ograniczenia
-        self.x_variables = int(len(cubeConstraints))
+        self.xCount = int(len(cubeConstraints))
 
         # liczba punktow
-        points = self.x_variables + 2
+        points = self.xCount + 2
 
         for point_it in range(0, points):
 
             # print("=====================================")
             # print("Punkt", point_it)
             # tablica na wspolrzedne o dlugosci liczby wspolrzednych (x0, x1, x2...)
-            x = [None] * self.x_variables
+            x = [None] * self.xCount
 
             # liczba funkcji ograniczen
             functions = int(len(constraintsFuns))
@@ -38,7 +38,7 @@ class Complex():
             result = [None] * functions
 
             # losowanie wspolrzednych pierwszego punktu
-            for it in range(0, self.x_variables):
+            for it in range(0, self.xCount):
 
                 # poczatek zakresu losowania
                 l = cubeConstraints[it][0]
@@ -55,113 +55,97 @@ class Complex():
                     r = np.random.uniform(0, 1)
                     x[it] = u + r * abs(u - l)
 
-            tmpPoint = Point(x, point_it)
+            tmp_point = Point(x, point_it)
 
-            # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
-            nextPointFlag = False
-            while nextPointFlag == False:  # x_var_it <= self.x_variables:
-                # if point_it > 0:
-                #   self.plot(tmpPoint)
-                # za kazdym razem sprawdza, czy wspolrzedne x spelnia wszystkie funkcje
-                for it in range(0, functions):
-                    result[it] = constraintsFuns[it](tmpPoint.get())
+            self.addPoint(tmp_point, constraintsFuns, cubeConstraints)
 
-                    # w przypadku pierwszego punktu pierwsza funkcja,
-                    # ktora zwroci wartosc spoza obszaru powoduje powtorzenie losowania wspolrzednych
-                    if point_it == 0 and result[it] > 0:
-                        # print("losowanie nieudane: f", it+1, " result: ", result[it], " aaa: ", result[0])
-                        new_x = []
-                        for x0_it in range(0, self.x_variables):
-                            new_x.append(np.random.uniform(l, u))
+    # Dodaje podany punkt do complexu. Sprawdza, czy znajduje sie w obszarze dopuszczalnym, jezeli nie, to go poprawia
+    def addPoint(self, point, constraintsFuns, cubeConstraints):
 
-                        tmpPoint.set(new_x)
+        point = self.correctPoint(point, constraintsFuns, cubeConstraints)
+        self.points.append(
+            Point(point.get(), point.getID()))
 
-                        nextPointFlag = False
-                        break
+        self.pointsCount += 1
 
-                    # sprawdzenie, czy wspolrzedna punktu spelnia funkcje ograniczen
-                    # (czyli czy w danej "osi" punkt "lezy w obszarze dopuszczalnym")
-                    # jezeli nie, to przesuniecie w strone centrum zaakceptowanych punktow o polowe odleglosci
-                    elif point_it != 0 and result[it] > 0:
-                        # wyliczenie centroidu i przesuniecie punktu o polowe, sprawdzenie czy ok, jak ok to sprawdza kolejna, jak nie to przesuniecie
-                        # centroid mozna liczyc wczesniej, bo dopoki nie bedzie liczony nowy punkt to centroid sie nie zmieni
+    # Sprawdza, czy podany punkt znajduje sie w obszarze dopuszczalnym,
+    #   – jezeli nie, to go poprawia i zwraca
+    #   – jezeli tak, to po prostu go zwraca bez zmian
+    def correctPoint(self, point, constraintsFuns, cubeConstraints=None):
+        # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
+        again = True
+        while again:  # x_var_it <= self.x_variables:
 
-                        tmpPoint = self.moveHalfwayToCentrum(
-                            tmpPoint, objFunction)
+            # Funkcja zwraca wartosci:
+            #   – False, jezeli punkt spelnia warunki ograniczen
+            #   – True, jezeli punkt nie spelnia chociaz jednej funkcji ograniczen
+            again = self.checkConstraints(
+                point, constraintsFuns)
 
-                        nextPointFlag = False
-                        break
+            # jezeli punkt nie spelnia ograniczen, to
+            # w przypadku pierwszego punktu losowanie tego punktu jest powtarzane
+            if point.getID() == 0 and again:
+                for it in range(0, self.xCount):
+                    l = cubeConstraints[it][0]
+                    u = cubeConstraints[it][1]
+                new_x = []
+                for x0_it in range(0, self.xCount):
+                    new_x.append(np.random.uniform(l, u))
 
-                    # jezeli wspolrzedna punktu spelnia funkcje ograniczen, to jest akceptowana
-                    # i program przechodzi do kolejnej wspolrzednej
+                point.set(new_x)
 
-                    if it == functions-1:
-                        self.points.append(
-                            Point(tmpPoint.get(), tmpPoint.getID()))
+            # jezeli punkt nie spelnia ograniczen, to
+            # w przypadku kazdego innego punktu jest on przesuwany w strone centrum zaakceptowanych juz punktow o polowe odleglosci
+            elif point.getID() != 0 and again:
+                point = self.moveHalfwayToCentrum(point)
 
-                        self.pointsCount += 1
-                        nextPointFlag = True
-            del tmpPoint
+        # jezeli punkt spelnia ograniczenia, to program wychodzi z petli while i zwraca ten punkt
+        return point
 
     def addPointToComplex(self, objFunction, constraintsFuns, cubeConstraints):
         x = []
-        for it in range(0, self.x_variables):
-            l = cubeConstraints[it][0]
-            u = cubeConstraints[it][1]
+
+        for x_it in range(0, self.xCount):
+            l = cubeConstraints[x_it][0]
+            u = cubeConstraints[x_it][1]
             r = np.random.uniform(0, 1)
             x.append(u + r * abs(u - l))
+        # jako ID wystarczy podac aktualna liczbe punktow, poniewaz ID jest liczone od zera
+        tmp_point = Point(x, self.pointsCount)
 
-            functions = int(len(constraintsFuns))
-
-            while nextPointFlag == False:  # x_var_it <= self.x_variables:
-
-                # za kazdym razem sprawdza, czy wspolrzedne x spelnia wszystkie funkcje
-                for it in range(0, functions):
-                    result = constraintsFuns[it](tmpPoint.get())
-
-                    # sprawdzenie, czy wspolrzedna punktu spelnia funkcje ograniczen
-                    # (czyli czy w danej "osi" punkt "lezy w obszarze dopuszczalnym")
-                    # jezeli nie, to przesuniecie w strone centrum zaakceptowanych punktow o polowe odleglosci
-                    if result > 0:
-                        # wyliczenie centroidu i przesuniecie punktu o polowe, sprawdzenie czy ok, jak ok to sprawdza kolejna, jak nie to przesuniecie
-                        # centroid mozna liczyc wczesniej, bo dopoki nie bedzie liczony nowy punkt to centroid sie nie zmieni
-
-                        tmpPoint = self.moveHalfwayToCentrum(
-                            tmpPoint, objFunction)
-
-                        nextPointFlag = False
-                        break
-
-                    # jezeli wspolrzedna punktu spelnia funkcje ograniczen, to jest akceptowana
-                    # i program przechodzi do kolejnej wspolrzednej
-
-                    if it == functions-1:
-                        self.points.append(
-                            Point(tmpPoint.get(), tmpPoint.getID()))
-
-                        self.pointsCount += 1
-                        nextPointFlag = True
+        self.addPoint(tmp_point, constraintsFuns, cubeConstraints)
 
     # uruchamia algorytm
+
     def run(self, objFunction, constraintsFuns, cubeConstraints):
-        # sprawdza, czy warunek stopu jest spelniony
-        self.checkEpsilon()
 
-        # jezeli warunek stopu jest spelniony, to konczy petle
-        if self.stop == True:
-            print("tu bedzie break")
+        # dopoki warunek stopu nie jest spelniony
+        while (self.convergence() == False):
 
-        # wyznacza centroid
-        centroid = self.centroid(objFunction)
+            # znajdz najgorszy punkt
+            x_w = self.getWorstPoint()
 
-        # sprawdza, czy centroid znajduje sie w obszarze dopuszczalnym
-        for fun in constraintsFuns:
-            result = constraintsFuns(centroid.get())
+            # znajdz centroid
+            centroid = self.centroid(x_w)
 
-            # jezeli centroid nie jest w obszarze dopuszczalnym
+            # sprawdz, czy centroid znajduje sie w obszarze dopuszczalnym
+
+        # zwraca id optymalnego punktu, ktory daje najlepsza (najmniejsza) wartosc funkcji celu
+        best_point_id = self.getBestPoint()
+
+    # sprawdza, czy dany punkt znajduje sie w obszarze dopuszczalnym
+    def checkConstraints(self, point, constraintsFuns):
+
+        # sprawdza, czy punkt spelnia wszystkie funkcje ograniczen
+        for function in constraintsFuns:
+            result = function(point.get())
+
+            # pierwsza funkcja ograniczen, ktora zwroci wartosc spoza obszaru powoduje zwrocenie wartosci True
             if result > 0:
-                self.addPointToComplex()
-                print("tutaj run() msui sie zakonczyc i zostac uruchomiony ponownie")
+                return True
+
+        # jezeli punkt spelnia wszystkie funkcje ograniczen, to zwracana jest wartosc False
+        return False
 
     def reflect2(self, centroid):
 
@@ -171,12 +155,12 @@ class Complex():
 
         alpha = 1.3
 
-        #x = c[:]
+        # x = c[:]
         x = []
 
         print("\nc", c)
-        for x_it in range(0, self.x_variables):
-            #x[x_it] += (1+alpha)*c[x_it] - pp[x_it]*alpha
+        for x_it in range(0, self.xCount):
+            # x[x_it] += (1+alpha)*c[x_it] - pp[x_it]*alpha
             x.append((1+alpha)*c[x_it] - pp[x_it]*alpha)
 
         print("\nx:", x)
@@ -193,38 +177,42 @@ class Complex():
 
         x = []
 
-        for x_it in self.x_variables:
+        for x_it in self.xCount:
             x.append((1-alpha)*c[x_it] - p[x_it])
 
         point.set(x)
 
-    # przesuwa podany punkt o polowe odleglosci od centrum
+    # przesuwa punkt do centrum o polowe odleglosci
+    def moveHalfwayToCentrum(self, point):
+        centrum = self.centrum()
+        return self.moveHalfwayTo(point, centrum)
 
-    def moveHalfwayToCentrum(self, x_point, objFunction):
+    # przesuwa punkt do centroidu o polowe odleglosci
+    def moveHalfwayToCentroid(self, point, objFun):
+        worst_point = self.getWorstPoint(objFun)
+        centroid = self.centroid(worst_point)
+        return self.moveHalfwayTo(point, centroid)
+
+    # przesuwa punkt do drugiego punktu (niekoniecznie centroidu lub centrum) o polowe odleglosci
+    def moveHalfwayTo(self, point_p, c_p):
 
         new_point = []
 
-        x_p = x_point.get()
-        x_p_id = x_point.getID()
+        point = point_p.get()
+        point_id = point_p.getID()
 
-        # liczy centrum (nie centroid), czyli srodek figury z dopuszczonych punktow
-        c_p = self.centroid(objFunction, centrumFlag=True)
         c = c_p.get()
-        # print("centrum", c_p)
-        # print("punkt przed halfway", x_p)
 
         # dla kolejnych wspolrzednych
-        for x_var_it in range(0, self.x_variables):
+        for x_it in range(0, self.xCount):
 
-            new_x_var = abs(x_p[x_var_it] - c[x_var_it])
-            new_x_var /= 2
+            # obliczenie polowy odleglosci wspolrzednej
+            x_trans = 0.5*abs(point[x_it] - c[x_it])
 
-            new_point.append(x_p[x_var_it]-new_x_var)
-        # print("odleglosc: ", np.sqrt(new_point[0]**2 + new_point[1]**2))
-        # print("punkt po halfway", new_point)
-        # (self.points[x_p_id]).move(new_point)
+            # ustalenie nowej wartosci wspolrzednej, juz po przesunieciu
+            new_point.append(point[x_it]-x_trans)
 
-        return Point(new_point, x_p_id)
+        return Point(new_point, point_id)
 
     # laczy dwa punkty
     def connectPoints(self, ax, p1, p2):
@@ -262,16 +250,18 @@ class Complex():
         # rysuje funkcje ograniczen
         self.plotObjFun(ax)
 
+        worst_point = self.getWorstPoint(objFunction)
+
         # rysuje centroid
-        c_p = self.centroid(objFunction)
-        c = c_p.get()
-        ax.scatter(c[0], c[1])
+        centroid_p = self.centroid(worst_point)
+        centroid = centroid_p.get()
+        ax.scatter(centroid[0], centroid[1])
 
         # wyznacza centrum, potrzebne do wyznaczenia wsp. biegunowych
-        center = self.centroid(objFunction, centrumFlag=True)
+        centrum = self.centrum()
 
         # aktualizuje wsp. biegunowe
-        self.refreshPolar(center)
+        self.refreshPolar(centrum)
 
         # sortuje wzgledem phi
         self.sortByPolar()
@@ -359,7 +349,7 @@ class Complex():
             polar_x = point.get().copy()
 
             # wyznacza nowe wspolrzedne w ukladzie kartezjanskim, gdzie c jest srodkiem ukladu
-            for x_it in range(0, self.x_variables):
+            for x_it in range(0, self.xCount):
                 polar_x[x_it] = polar_x[x_it]-c[x_it]
 
             # wyznacza phi oraz r w ukladzie kartezjanskim
@@ -372,7 +362,7 @@ class Complex():
     def rDist(self, polar_x):
 
         sum = 0
-        for x_var_it in range(0, self.x_variables):
+        for x_var_it in range(0, self.xCount):
             sum = np.power(polar_x[x_var_it], 2)
 
         return np.sqrt(sum)
@@ -397,7 +387,7 @@ class Complex():
         p2 = point2.get()
 
         distance = 0
-        for x in range(0, self.x_variables):
+        for x in range(0, self.xCount):
             distance += np.power(p1[x] - p2[x], 2)
 
         return np.sqrt(distance)
@@ -408,10 +398,11 @@ class Complex():
 
         return abs(p1[x_num]-p2[x_num])
 
-    def checkEpsilon(self):
+    # sprawdza, czy kryterium stopu jest spelnione
+    def convergence(self):
 
         if self.checkSidesLen() <= self.epsilon:
-            self.stop = True
+            return True
 
     # zwraca dlugosc najdluzszego boku wielokata
     def checkSidesLen(self):
@@ -435,56 +426,85 @@ class Complex():
 
         return biggest
 
-    def centroid(self, objFunction, centrumFlag=False):
+    # liczy centroid, czyli srodek wielokatu nie zawierajacego punktu dajacego najwieksza wartosc funkcji celu
+    def centroid(self, worst_point):
 
         # lista zsumowanych poszczegolnych wspolrzednych
-        sum_x_var = [0] * self.x_variables
+        sum_x_var = [0] * self.xCount
 
         # lista wspolrzednych centroidu
         c = []
-
-        # ID punktu dajacego najwieksza (najgorsza) wartosc funkcji celu
-        x_var_worst_id = self.getWorstPointID(objFunction)
-
-        # k jest rowne ilosci punktow w przypadku liczenia centrum
-        # jezeli jest liczony centroid, to zostanie to zmienione pozniej
-        k = self.pointsCount
 
         # sumowanie wspolrzednych kazdego punktu poza tym najgorszym
         for point in self.points:
 
             # jezeli nie jest liczone centrum, to liczony jest centroid,
             # wtedy nie bierzemy pod uwage najgorszego punktu
-            if not(centrumFlag) and point.id == x_var_worst_id:
-                k = self.pointsCount - 1
-
+            if point.getID() == worst_point.getID():
                 # pominiecie aktualnej iteracji petli for
                 continue
 
             # wlasciwe sumowanie wspolrzednych punktow
-            for x_var_it in range(0, self.x_variables):
+            for x_var_it in range(0, self.xCount):
                 sum_x_var[x_var_it] += (point.get())[x_var_it]
 
-        # przypisanie punktowi c (centroid/centrum) jego wspolrzednych
+        # przypisanie punktowi c (centroid) jego wspolrzednych
         # wspolrzedne to srednia algebraiczna wspolrzednych punktow wierzcholkow
-        for it in range(0, self.x_variables):
-            c.append(sum_x_var[it]/k)
+        for it in range(0, self.xCount):
+            c.append(sum_x_var[it]/(self.pointsCount - 1))
 
         return Point(c, -1)
 
-    # zwraca id punktu o najwiekszej wartosci funkcji celu
-    def getWorstPointID(self, objFunction):
+    # liczy centroid, czyli srodek wielokatu skladajacego sie ze wszystkich punktow
+    def centrum(self):
+
+        # lista zsumowanych poszczegolnych wspolrzednych
+        sum_x_var = [0] * self.xCount
+
+        # lista wspolrzednych centroidu
+        c = []
+
+        # sumowanie wspolrzednych kazdego punktu
+        for point in self.points:
+
+            # wlasciwe sumowanie wspolrzednych punktow
+            for x_var_it in range(0, self.xCount):
+                sum_x_var[x_var_it] += (point.get())[x_var_it]
+
+        # przypisanie punktowi c (centrum) jego wspolrzednych
+        # wspolrzedne to srednia algebraiczna wspolrzednych punktow wierzcholkow
+        for it in range(0, self.xCount):
+            c.append(sum_x_var[it]/self.pointsCount)
+
+        return Point(c, -1)
+
+    # zwraca punkt o najwiekszej wartosci funkcji celu
+    def getWorstPoint(self, objFunction):
 
         f_max = 0
-        id_rtn = None
+        rtn_point = None
 
-        for point in self.points:  # tmp_point:
+        for point in self.points:
             value = self.objFunValue(objFunction, point.get())
             if value > f_max:
                 f_max = value
-                id_rtn = point.getID()
+                rtn_point = point
 
-        return id_rtn
+        return rtn_point
+
+    # zwraca punkt o najmniejszej wartosci funkcji celu
+    def getBestPoint(self, objFunction):
+
+        f_min = 10000000000
+        rtn_point = None
+
+        for point in self.points:  # tmp_point:
+            value = self.objFunValue(objFunction, point.get())
+            if value < f_min:
+                f_min = value
+                rtn_point = point
+
+        return rtn_point
 
     # funkcja celu, zwraca wartosc dla danego punktu
     def objFunValue(self, objFun, point):
