@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from point import Point
 from complex import Complex
-from interface import *
+# from interface import *
 from math import *
 import PySimpleGUI as sg
 
