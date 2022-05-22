@@ -12,6 +12,12 @@ class Point():
         self.phi = 0
         self.r = 0
 
+    def __eq__(p1, p2):
+        if p1.getID() == p2.getID():
+            return True
+        else:
+            return False
+
     def setPolar(self, arg_r, arg_phi):
         self.r = arg_r
         self.phi = arg_phi
@@ -35,6 +41,9 @@ class Point():
                 eqStr = "= "
             print(" x" + str(it), eqStr, '%.12f' %
                   (self.x[it]), end='')
+
+    def setID(self, new_id):
+        self.id = new_id
 
     def set(self, new_x):
         self.x = new_x
