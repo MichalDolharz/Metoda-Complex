@@ -2,9 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from point import Point
 from complex import Complex
-# from interface import *
+from interface import *
 from math import *
 import PySimpleGUI as sg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from funcParser import getFunction
+import traceback
 
 
 def info(thing):
@@ -15,7 +18,7 @@ def f1(var):
     # print("f1", end=' ')
     # print("f1 var[0]:", var[0])
     # print("f1 var[1]:", var[1])
-    return 0.33*var[0]+var[1]-3  # <= 0
+    return var[0]+var[1]-2  # <= 0
     # return var[0]+var[1]-2  # <= 0
 
 
@@ -23,7 +26,7 @@ def f2(var):
     # print("f2", end=' ')
     # print("f2 var[0]:", var[0])
     # print("f2 var[1]:", var[1])
-    return 0.3*np.power(var[0], 2)-var[1]  # <= 0
+    return np.power(var[0], 2)-var[1]  # <= 0
     # return np.power(var[0], 2)-var[1]  # <= 0
 
 
@@ -51,95 +54,124 @@ def objFunction(x):
     return eval(input("Podaj funkcje, np np.sin(x): "))
 
 
+def clear_canvas(figure):
+    figure.get_tk_widget().forget()
+    plt.close('all')
+
+
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    widget = figure_canvas_agg.get_tk_widget()
+    figure_canvas_agg.draw()
+    widget.pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
+
 def okienko():
-    sg.theme('Dark')
-
-    objFun_layout = [
-        [sg.InputText(size=(40, 50)), sg.Text("<= 0"), sg.Submit("Ustaw")]]
-    objFun = sg.Frame("Funkcja celu", layout=objFun_layout)
-
-    cubeConstr_layout = [[sg.InputText(size=(5, 0)),
-                          sg.Text("<= x <= "),
-                          sg.InputText(size=(5, 0))],
-                         [sg.Submit("Dodaj", key="Dodaj-kostka"),
-                         sg.Push(),
-                         sg.Submit("Usuń", key="Usun-kostka")]]
-    cubeConstraints = sg.Frame(
-        "Ograniczenia kostki", layout=cubeConstr_layout)
-
-    constraintFun_layout = [[sg.InputText(),
-                             sg.Text("<= 0"), ],
-                            [sg.Submit("Dodaj", key="Dodaj-funkcja"),
-                             sg.Push(),
-                             sg.Submit("Usuń", key="Usun-funkcja")]]
-    constraintsFun = sg.Frame("Ograniczenia funkcyjne",
-                              layout=constraintFun_layout)
-
-    algorithm_layout = [[sg.Text("Epsilon"), sg.HSeparator(), sg.InputText(size=(10))],
-                        [sg.Text("Max. iteracji"), sg.HSeparator(),
-                         sg.InputText(size=(10))],
-                        [sg.Submit("Uruchom")]]
-    algorithm = sg.Frame("Parametry algorytmu",
-                         layout=algorithm_layout, size=(200, 100))
-
-    logs_layout = [[sg.Output()]]
-    logs = sg.Frame("Komunikaty", layout=logs_layout)
-
-    chart_sett_layout = [[sg.Text("Oś X: od "),
-                          sg.InputText(size=(5, 0)),
-                          sg.Text(" do "),
-                          sg.InputText(size=(5, 0))],
-                         [sg.Text("Oś Y: od "),
-                          sg.InputText(size=(5, 0)),
-                          sg.Text(" do "),
-                          sg.InputText(size=(5, 0))]]
-    chart_sett = sg.Frame("Ustawienia wykresu", layout=chart_sett_layout)
-
-    matplotlib_layout = [[sg.Text('Tu ebdzie wykres')]]
-    matplotlib_ = sg.Frame("Wykres", matplotlib_layout)
-
-    matplotlib_sett_layout = [[sg.Text('Tu będą kroki')]]
-    matplotlib_sett = sg.Frame("Przeglądanie kroków", matplotlib_sett_layout)
-
-    Column1_1 = [[cubeConstraints], [algorithm]]
-    Column1_2 = [[constraintsFun], [chart_sett]]
-    Column1 = [[objFun], [sg.Column(Column1_1), sg.Column(Column1_2)], [logs]]
-    Column2 = [[matplotlib_], [matplotlib_sett]]
-
-    #Column1 = [[objFun], [cubeConstraints, constraintsFun], [algorithm, chart_sett], [logs]]
-    #Column2 = [[matplotlib_], [matplotlib_sett]]
-
-    layout = [[sg.Column(Column1, size=(500, 600)), sg.Column(Column2)]]
-
-    # Create the Window
-    window = sg.Window('Metoda Complex', layout)
-
+    cubeConstraints = []
+    constraintsFuns_print = []
+    constraintsFuns = []
+    figure = None
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
         event, values = window.read()
-        if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
-            break
-        if event == "Dodaj-kostka":
-            print('Dodano ograniczenie kostki')
+        try:
+            if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
+                break
+            if event == "Dodaj-kostka":
+                
+                print('Dodano ograniczenie kostki')
+                cubeConstraints.append([float(values['LowerConstr']), float(values['UpperConstr'])])
+                cubeConstr_list_print = make_cubeConstr_list(cubeConstraints)
+                window['List-kostka'].update(cubeConstr_list_print)
+                
+            if event == "Dodaj-funkcja":
+                if str(values['-funConstr-']) == "":
+                    print("Nie wprowadzono ograniczenia funkcyjnego")
+                    continue
+                print('Dodano ograniczenie funkcyjne')
+                constraintsFuns.append(getFunction(values['-funConstr-']))
+                constraintsFuns_print.append(str(values['-funConstr-']))
+                window['List-funkcje'].update(constraintsFuns_print)
 
+            if event == "Uruchom":
+                if(figure):
+                    clear_canvas(figure)
+                # window['logi'].update('')
+                plt.clf()
+                print("Uruchomiono algorytm")
+
+                # constraintsFuns = [f1, f2]
+                epsilon = float(values['-epsilon-'])
+                kompleks = Complex()
+                objectiveFun = getFunction(values['combo-objFun'])
+                kompleks.fill(cubeConstraints, constraintsFuns, objectiveFun, epsilon)
+                best_point = kompleks.run(objectiveFun, constraintsFuns, cubeConstraints)
+                kompleks.plotPolygon(objectiveFun, print=False)
+                figure = draw_figure(window['-PLOT_CANV-'].TKCanvas, plt.gcf())
+                best_point.display()
+                makeKolorki(objectiveFun)
+                print("")
+                # window['logi'].update()
+
+            if event == 'Usun-kostka' and values['List-kostka']:
+                #
+                #
+                # TU JEST KURWA PROBLEM
+                #
+                #
+                #
+                print("Usunięto ogr. kostki ", values['List-kostka'][0])
+                id = constraintsFuns_print.index(values['List-kostka'][0])
+                constraintsFuns_print.remove(values['List-kostka'][0])
+                constraintsFuns.pop(id)
+                window['List-kostka'].update(constraintsFuns_print)
+
+            if event == 'Usun-funkcja' and values['List-funkcje']:
+                print("Usunięto ogr. funkcyjne ", values['List-funkcje'][0])
+                id = constraintsFuns_print.index(values['List-funkcje'][0])
+                constraintsFuns_print.remove(values['List-funkcje'][0])
+                constraintsFuns.pop(id)
+                window['List-funkcje'].update(constraintsFuns_print)
+
+            if event == "Wyczysc-logi":
+                window['logi'].update('')
+
+        except Exception as e:
+                tb = traceback.format_exc()
+                sg.Print(f'An error happened.  Here is the info:', e, tb)
+                # sg.popup_error(f'AN EXCEPTION OCCURRED!', e, tb)
+            
     window.close()
+
+def makeKolorki(objectiveFun):
+    xmin,xmax = plt.xlim()
+    ymin,ymax = plt.ylim()
+    x = np.linspace(xmin - 2, xmax + 2)
+    y = np.linspace(ymin - 2, ymax + 2)
+    X, Y = np.meshgrid(x, y)
+    Z = objectiveFun([X,Y])
+    Z = np.array(Z)
+    Z = np.reshape(Z, (len(x), len(y)))
+    plt.contourf(X, Y, Z, extend='both', levels=10)
+    plt.colorbar()
 
 
 def main():
+    
+    okienko()
 
-    cubeConstraints = [[-5, 5], [-5, 5], [-5, 5]]  # , [-5, 5]]
-    constraintsFuns = [f1, f2, f3]
+    # cubeConstraints = [[-5, 5], [-5, 5]]#, [-1, 1]]  # , [-5, 5]]
+    # constraintsFuns = [f1, f2]#, f3]
 
-    epsilon = 0.001
-
+    # epsilon = 0.001
+    # # objectiveFun = getFunction("(x1-2)^2 + (x2-2)^2")
     # kompleks = Complex()
     # kompleks.fill(cubeConstraints, constraintsFuns, objectiveFun, epsilon)
     # kompleks.plotPolygon(objectiveFun)
     # best_point = kompleks.run(objectiveFun, constraintsFuns, cubeConstraints)
     # best_point.display()
-    # kompleks.plotPolygon(objectiveFun)
-
-    okienko()
+    # kompleks.plotPolygon(objectiveFun, print=True)
+    
 
 
 main()

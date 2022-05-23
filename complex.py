@@ -3,6 +3,7 @@ from re import A
 import matplotlib.pyplot as plt
 import numpy as np
 from point import Point
+from typing import Callable, List
 
 
 class Complex():
@@ -71,7 +72,7 @@ class Complex():
     # Sprawdza, czy podany punkt znajduje sie w obszarze dopuszczalnym,
     #   – jezeli nie, to go poprawia i zwraca
     #   – jezeli tak, to po prostu go zwraca bez zmian
-    def correctPoint(self, point, constraintsFuns, cubeConstraints=None):
+    def correctPoint(self, point, constraintsFuns, cubeConstraints):
         # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
         again = True
         while again:  # x_var_it <= self.x_variables:
@@ -79,8 +80,8 @@ class Complex():
             # Funkcja zwraca wartosci:
             #   – True, jezeli punkt spelnia warunki ograniczen
             #   – False, jezeli punkt nie spelnia chociaz jednej funkcji ograniczen
-            again = not(self.checkFunConstraints(
-                point, constraintsFuns))
+            again = not(self.checkConstraints(
+                point, constraintsFuns, cubeConstraints))
 
             # jezeli punkt nie spelnia ograniczen, to
             # w przypadku pierwszego punktu losowanie tego punktu jest powtarzane
@@ -205,7 +206,6 @@ class Complex():
         return best_point
 
     def weights(self, objFunction):
-
         for point in self.points:
             print(point.getID(), " - ", objFunction(point.get()))
 
@@ -216,9 +216,9 @@ class Complex():
         # ograniczenia wpolrzednych
         for it in range(0, self.xCount):
             if p[it] < cubeConstraints[it][0]:
-                p[it] == cubeConstraints[it][0]
+                p[it] = cubeConstraints[it][0]
             elif p[it] > cubeConstraints[it][1]:
-                p[it] == cubeConstraints[it][1]
+                p[it] = cubeConstraints[it][1]
 
         point.set(p)
 
@@ -379,7 +379,7 @@ class Complex():
         ax.plot(n, fun2)
 
     # rysuje wielokat
-    def plotPolygon(self, objFunction):
+    def plotPolygon(self, objFunction, print=False):
         fig, ax = plt.subplots()
 
         # rysuje funkcje ograniczen
@@ -405,8 +405,8 @@ class Complex():
         self.createPolygon(ax)
 
         ax.grid(True)
-
-        plt.show()
+        if print:
+            plt.show()
 
     # sortuje punkt wedlug phi
     def sortByPolar(self):
