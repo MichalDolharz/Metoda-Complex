@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from point import Point
 from typing import Callable, List
+import sympy as sp
+from sympy.solvers.solveset import solvify
+from copy import *
 
 
 class Complex():
@@ -13,6 +16,12 @@ class Complex():
         self.xCount = 0
         self.epsilon = 0
         self.stop = False
+    
+    # Ustawia wartości do zmiennych Complexu
+    def set(self, new_points):
+        self.points = new_points
+        self.pointsCount = len(new_points)
+        # self.xCount = len(new_points[0])
 
     def fill(self, cubeConstraints, constraintsFuns, objFunction, epsilon):
 
@@ -118,9 +127,10 @@ class Complex():
 
     # uruchamia algorytm
 
-    def run(self, objFunction, constraintsFuns, cubeConstraints):
+    def run(self, objFunction, constraintsFuns, cubeConstraints, max_it):
 
         counter = 0
+        step_program = []
 
         # KROK 2,3
         # dopoki warunek stopu nie jest spelniony
@@ -168,17 +178,14 @@ class Complex():
                         # przyjecie skrajnych wartosci ograniczen
                         self.correctCubeConstraints(
                             ten_konkretny_point, cubeConstraints)
-                    case 'none':
-                        print("none")
-                    case _:
-                        print(
-                            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+
             # KROK 8
             # znajdz, jaki teraz jest najgorszy punkt
             new_worst_point = self.getWorstPoint(objFunction)
 
             # dopoki odbity punkt nadal jest tym najgorszym
             # to jest przesuwany w kierunku centroidu
+
             while ten_konkretny_point == new_worst_point:
 
                 self.contract(ten_konkretny_point, centroid)
@@ -191,23 +198,27 @@ class Complex():
 
             counter += 1
             if counter % 500 == 0:
-                if counter == 5000:
+                if counter == max_it:
                     print("Osiągnięto limit iteracji")
                     break
                 print("Counter ", counter)
                 self.plotPolygon(objFunction)
                 self.addPointToComplex(constraintsFuns, cubeConstraints)
                 # self.plotPolygon(objFunction)
+            
+            step_program.append(deepcopy(self))
+            # step_program[-1].display()
 
         # zwraca id optymalnego punktu, ktory daje najlepsza (najmniejsza) wartosc funkcji celu
         best_point = self.getBestPoint(objFunction)
         print("Tyle iteracji:", counter)
         print("Tyle punktów na koniec:", self.pointsCount)
-        return best_point
+        return best_point, step_program
 
     def weights(self, objFunction):
+        x1, x2, x3, x4, x5 = point.get_xi()
         for point in self.points:
-            print(point.getID(), " - ", objFunction(point.get()))
+            print(point.getID(), " - ", objFunction(x1, x2, x3, x4, x5))
 
     def correctCubeConstraints(self, point, cubeConstraints):
 
@@ -286,7 +297,8 @@ class Complex():
 
         # sprawdza, czy punkt spelnia wszystkie funkcje ograniczen
         for function in constraintsFuns:
-            result = function(point.get())
+            x1, x2, x3, x4, x5 = point.get_xi()
+            result = function(x1, x2, x3, x4, x5)
 
             # pierwsza funkcja ograniczen, ktora zwroci wartosc spoza obszaru powoduje zwrocenie wartosci True
             if result > 0:
@@ -353,7 +365,7 @@ class Complex():
     def connectPoints(self, ax, p1, p2):
         x_values = [p1[0], p2[0]]
         y_values = [p1[1], p2[1]]
-        ax.plot(x_values, y_values, 'ko', linestyle='-')
+        ax.plot(x_values, y_values, 'wo', linestyle='-')
 
     # laczy kolejne punkty tworzac wielokat
     def createPolygon(self, ax):
@@ -365,21 +377,77 @@ class Complex():
                 self.connectPoints(
                     ax, self.points[var_it].get(), self.points[0].get())
 
+
     # rysuje funkcje ograniczen funkcyjnych
-    def plotObjFun(self, ax):
-        n = np.linspace(-2, 2.1, 100)
-        fun1 = []
-        fun2 = []
+    def plotObjFun(self, constraintsFunsString, cubeConstraints, ax):
+        
+        n = []
+        N = 100
+        # dla x1
+        n.append(np.linspace(cubeConstraints[0][0], cubeConstraints[0][1], N))
+        # od x3 do x5 (bez x2, bo on jest obliczany i wyświetlany)
+        for it in range(2, len(cubeConstraints)):
+            n.append(np.linspace(cubeConstraints[it][0], cubeConstraints[it][1], N))
 
-        for i in n:
-            fun1.append(0.3*i**2)
-            fun2.append(3-0.33*i)
+        # wszystkie możliwe zmienne
+        x1, x2, x3, x4, x5 = sp.symbols("x1, x2, x3, x4, x5")
+        xs = [x1, x3, x4, x5]
+        funs = []
+        for it in range(0, len(constraintsFunsString)):
+            fun = []
+            expr = sp.parse_expr(constraintsFunsString[it])
+            for jt in range(0, N):
+                expr2 = expr.subs([(x1, n[0][jt]), (x3, n[1][jt]), (x4, n[2][jt]), (x5, n[3][jt])])
+                equation = sp.Eq(expr2, 0)
+                solution = solvify(equation, x2, sp.Reals)
+                fun.append(solution[0])
 
-        ax.plot(n, fun1)
-        ax.plot(n, fun2)
+            funs.append(fun)
+            
+            ax.plot(n[0], funs[it])
+
+
+
 
     # rysuje wielokat
-    def plotPolygon(self, objFunction, print=False):
+    def plotPolygon(self, objFunction, constraintsFunsString, tmp_cubeConstraints,  print=False):
+        
+        fig, ax = plt.subplots()
+        ax.set_title('')
+        ax.set_ylabel('x1')
+        ax.set_xlabel('x2')
+        ax.grid(True)
+
+        # rysuje funkcje ograniczen
+        self.plotObjFun(constraintsFunsString, tmp_cubeConstraints, ax)
+
+        worst_point = self.getWorstPoint(objFunction)
+
+        # rysuje centroid
+        centroid_p = self.centroid(worst_point)
+        centroid = centroid_p.get()
+        ax.scatter(centroid[0], centroid[1])
+
+        # wyznacza centrum, potrzebne do wyznaczenia wsp. biegunowych
+        centrum = self.centrum()
+
+        # aktualizuje wsp. biegunowe
+        self.refreshPolar(centrum)
+
+        # sortuje wzgledem phi
+        self.sortByPolar()
+
+        # posortowane punkty sa ze soba kolejno laczone
+        self.createPolygon(ax)
+
+        
+        if print:
+            plt.show()
+
+
+    # rysuje wielokat ponownie
+    # przydatne do wyświetlania wykresu dla danego kroku
+    def plotStepPolygon(self, points, objFunction):
         fig, ax = plt.subplots()
 
         # rysuje funkcje ograniczen
@@ -407,6 +475,8 @@ class Complex():
         ax.grid(True)
         if print:
             plt.show()
+
+
 
     # sortuje punkt wedlug phi
     def sortByPolar(self):
@@ -602,7 +672,7 @@ class Complex():
         rtn_point = None
 
         for point in self.points:
-            value = self.objFunValue(objFunction, point.get())
+            value = self.objFunValue(objFunction, point)
             if value > f_max:
                 f_max = value
                 rtn_point = point
@@ -616,7 +686,7 @@ class Complex():
         rtn_point = None
 
         for point in self.points:  # tmp_point:
-            value = self.objFunValue(objFunction, point.get())
+            value = self.objFunValue(objFunction, point)
             if value < f_min:
                 f_min = value
                 rtn_point = point
@@ -625,7 +695,8 @@ class Complex():
 
     # funkcja celu, zwraca wartosc dla danego punktu
     def objFunValue(self, objFun, point):
-        return objFun(point)
+        x1, x2, x3, x4, x5 = point.get_xi()
+        return objFun(x1, x2, x3, x4, x5)
 
     # wyswietla wszystkie wsp. wszystkich punktow complexu w ukladzie kartezjanskim
     def display(self):
@@ -642,11 +713,11 @@ class Complex():
             point.displayPolar()
         print("\n")
 
-    # zwraca tablice punktow complexu
+    # zwraca tablice punktow complexu (listy)
     def get(self):
-
         tmp = []
         for it in range(0, len(self.points)):
             tmp.append((self.points[it]).get())
 
         return tmp
+

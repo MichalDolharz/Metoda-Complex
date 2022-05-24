@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 
-sg.theme('DarkBlue7')
+sg.theme('DarkAmber')
 
 
 def make_cubeConstr_list(cubeConstr_list):
@@ -12,18 +12,10 @@ def make_cubeConstr_list(cubeConstr_list):
 
 
 
-objFun_list = ["(x1-2)^2 + (x2-2)^2", "inna funkcja"]
-# objFun_layout = [
-#     [sg.Text("f_min"), sg.InputText(size=(40, 50)), sg.Submit("Ustaw")]]
+objFun_list = ["(x1-2)^2 + (x2-2)^2", "(x1-2)^2 + (x2-2)^2 + (x3-2)^2"]
 objFun_layout = [
     [sg.Text("f_min = "), 
     sg.Combo(objFun_list, default_value=objFun_list[0],size=(55,1),key='combo-objFun')]]
-    
-    # Nie wiem czy przycisk ustaw jest tutaj potrzebny
-    # chyba lepiej żeby przycisk uruchom pobierał wszystkie dane z okien i tyle
-    # bez zapisywania ich nigdzie. Co innego w ograniczeniach kostki
-    # tam przyda się taki przycisk a start pobierze to co jest już dodane
-    # sg.Submit("Ustaw")]]
 
 objFun = sg.Frame(
     "Funkcja celu", layout=objFun_layout)
@@ -40,7 +32,7 @@ cubeConstraints = sg.Frame(
     "Ograniczenia kostki", layout=cubeConstr_layout)
 
 constraintFun_layout = [
-    [sg.InputText(size=(20), key='-funConstr-'), sg.Push(), sg.Text("≤ 0", font=("Arial", 15))],
+    [sg.InputText(size=(20), key='-funConstr-', default_text='x1^2-x2'), sg.Push(), sg.Text("≤ 0", font=("Arial", 15))],
     [sg.Submit("Dodaj", key="Dodaj-funkcja"), sg.Submit("Usuń", key="Usun-funkcja")],
     [sg.Listbox([],  enable_events=True, no_scrollbar=False,  s=(20,5), key='List-funkcje'), sg.Text("≤ 0", font=("Arial", 15))]]
 
@@ -49,7 +41,7 @@ constraintsFun = sg.Frame("Ograniczenia funkcyjne",
 # sg.HSeparator()
 algorithm_layout = [
     [sg.Text("Epsilon", size=(10,1)), sg.InputText(size=(10), key='-epsilon-',default_text="0.001")],
-    [sg.Text("Max. iteracji", size=(10,1)),  sg.InputText(size=(10), key='-L-', default_text="5000")],
+    [sg.Text("Max. iteracji", size=(10,1)),  sg.InputText(size=(10), key='-max-it-', default_text="5000")],
     [sg.Submit("Uruchom")]]
 
 algorithm = sg.Frame("Parametry algorytmu",
@@ -63,8 +55,8 @@ logs = sg.Frame(
     "Komunikaty", layout=logs_layout)
 
 chart_sett_layout = [
-    [sg.Text("Oś X: od "), sg.InputText(size=(5, 0)), sg.Text(" do "), sg.InputText(size=(5, 0))],
-    [sg.Text("Oś Y: od "), sg.InputText(size=(5, 0)), sg.Text(" do "), sg.InputText(size=(5, 0))]]
+    [sg.Text("Oś X: od", size=(7,0)), sg.InputText(size=(5, 0), key="xmin"), sg.Text("do", size=(2,0)), sg.InputText(size=(5, 0), key="xmax")],
+    [sg.Text("Oś Y: od", size=(7,0)), sg.InputText(size=(5, 0), key="ymin"), sg.Text("do", size=(2,0)), sg.InputText(size=(5, 0), key="ymax")]]
 
 chart_sett = sg.Frame(
     "Ustawienia wykresu", layout=chart_sett_layout)
@@ -76,7 +68,9 @@ matplotlib_ = sg.Frame(
     "Wykres", matplotlib_layout)
 
 matplotlib_sett_layout = [
-    [sg.Text('Tu będą kroki')]]
+    [sg.Text('Liczba kroków:'), sg.Text('', key='-kroki-')], 
+    [sg.Text('Wyświetlany krok:'), sg.Text('', key='-wys-krok-')],
+    [sg.Slider((0,0), orientation='h', key="slider-kroki",size=(50, 20), enable_events = True)]]
     
 matplotlib_sett = sg.Frame(
     "Przeglądanie kroków", matplotlib_sett_layout)
