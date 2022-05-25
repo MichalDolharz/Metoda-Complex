@@ -16,7 +16,7 @@ class Complex():
         self.xCount = 0
         self.epsilon = 0
         self.stop = False
-    
+
     # Ustawia wartości do zmiennych Complexu
     def set(self, new_points):
         self.points = new_points
@@ -197,15 +197,15 @@ class Complex():
             # i procedura zaczyna sie od nowa
 
             counter += 1
+            if counter == max_it:
+                print("Osiągnięto limit iteracji")
+                break
             if counter % 500 == 0:
-                if counter == max_it:
-                    print("Osiągnięto limit iteracji")
-                    break
                 print("Counter ", counter)
                 self.plotPolygon(objFunction)
                 self.addPointToComplex(constraintsFuns, cubeConstraints)
                 # self.plotPolygon(objFunction)
-            
+
             step_program.append(deepcopy(self))
             # step_program[-1].display()
 
@@ -365,7 +365,7 @@ class Complex():
     def connectPoints(self, ax, p1, p2):
         x_values = [p1[0], p2[0]]
         y_values = [p1[1], p2[1]]
-        ax.plot(x_values, y_values, 'wo', linestyle='-')
+        ax.plot(x_values, y_values, 'ko', linestyle='-')
 
     # laczy kolejne punkty tworzac wielokat
     def createPolygon(self, ax):
@@ -377,17 +377,21 @@ class Complex():
                 self.connectPoints(
                     ax, self.points[var_it].get(), self.points[0].get())
 
-
     # rysuje funkcje ograniczen funkcyjnych
+
     def plotObjFun(self, constraintsFunsString, cubeConstraints, ax):
-        
+
         n = []
         N = 100
+
+        n_x2 = np.linspace(cubeConstraints[1][0], cubeConstraints[1][1], N)
+
         # dla x1
         n.append(np.linspace(cubeConstraints[0][0], cubeConstraints[0][1], N))
         # od x3 do x5 (bez x2, bo on jest obliczany i wyświetlany)
         for it in range(2, len(cubeConstraints)):
-            n.append(np.linspace(cubeConstraints[it][0], cubeConstraints[it][1], N))
+            n.append(np.linspace(
+                cubeConstraints[it][0], cubeConstraints[it][1], N))
 
         # wszystkie możliwe zmienne
         x1, x2, x3, x4, x5 = sp.symbols("x1, x2, x3, x4, x5")
@@ -396,26 +400,39 @@ class Complex():
         for it in range(0, len(constraintsFunsString)):
             fun = []
             expr = sp.parse_expr(constraintsFunsString[it])
-            for jt in range(0, N):
-                expr2 = expr.subs([(x1, n[0][jt]), (x3, n[1][jt]), (x4, n[2][jt]), (x5, n[3][jt])])
-                equation = sp.Eq(expr2, 0)
-                solution = solvify(equation, x2, sp.Reals)
-                fun.append(solution[0])
 
-            funs.append(fun)
-            
-            ax.plot(n[0], funs[it])
+            if x1 in expr.free_symbols and len(expr.free_symbols) == 1:
+                tmp = []
+                equation = sp.Eq(expr, 0)
+                for ni in n_x2:
+                    solution = solvify(equation, x1, sp.Reals)
+                    tmp.append(solution[0])
+                ax.plot(tmp, n_x2, 'k')
 
+            elif x1 in expr.free_symbols and x2 in expr.free_symbols:
+                for jt in range(0, N):
+                    expr2 = expr.subs(
+                        [(x1, n[0][jt]), (x3, n[1][jt]), (x4, n[2][jt]), (x5, n[3][jt])])
 
+                    equation = sp.Eq(expr2, 0)
+                    solution = solvify(equation, x2, sp.Complexes)
+                    if sp.im(solution[0]):
+                        tmp = []
+                        tmp.append(sp.re(solution[0]))
+                        solution = tmp[:]
+                    fun.append(solution[0])
 
+                funs.append(fun)
+
+                ax.plot(n[0], fun, 'k')
 
     # rysuje wielokat
-    def plotPolygon(self, objFunction, constraintsFunsString, tmp_cubeConstraints,  print=False):
-        
+    def plotPolygon(self, objFunction, constraintsFunsString, tmp_cubeConstraints, print=False):
+
         fig, ax = plt.subplots()
         ax.set_title('')
-        ax.set_ylabel('x1')
-        ax.set_xlabel('x2')
+        ax.set_xlabel('x1')
+        ax.set_ylabel('x2')
         ax.grid(True)
 
         # rysuje funkcje ograniczen
@@ -440,13 +457,12 @@ class Complex():
         # posortowane punkty sa ze soba kolejno laczone
         self.createPolygon(ax)
 
-        
         if print:
             plt.show()
 
-
     # rysuje wielokat ponownie
     # przydatne do wyświetlania wykresu dla danego kroku
+
     def plotStepPolygon(self, points, objFunction):
         fig, ax = plt.subplots()
 
@@ -476,9 +492,8 @@ class Complex():
         if print:
             plt.show()
 
-
-
     # sortuje punkt wedlug phi
+
     def sortByPolar(self):
 
         n = self.pointsCount
@@ -618,7 +633,7 @@ class Complex():
 
         # lista zsumowanych poszczegolnych wspolrzednych
         sum_x_var = [0] * self.xCount
-
+        self.display()
         # lista wspolrzednych centroidu
         c = []
 
@@ -693,6 +708,20 @@ class Complex():
 
         return rtn_point
 
+    # zwraca punkt o najmniejszej wartosci funkcji celu
+    def getFmin(self, objFunction):
+
+        f_min = 10000000000
+        rtn_point = None
+
+        for point in self.points:  # tmp_point:
+            value = self.objFunValue(objFunction, point)
+            if value < f_min:
+                f_min = value
+                rtn_point = point
+
+        return f_min
+
     # funkcja celu, zwraca wartosc dla danego punktu
     def objFunValue(self, objFun, point):
         x1, x2, x3, x4, x5 = point.get_xi()
@@ -720,4 +749,3 @@ class Complex():
             tmp.append((self.points[it]).get())
 
         return tmp
-
