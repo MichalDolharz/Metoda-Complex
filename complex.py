@@ -142,6 +142,9 @@ class Complex():
             # znajdz najgorszy punkt
             ten_konkretny_point = self.getWorstPoint(objFunction)
 
+            # print("przed funkcją: ", end='')
+            # ten_konkretny_point.display()
+
             # KROK 5
             # znajdz centroid
             centroid = self.centroid(ten_konkretny_point)
@@ -168,6 +171,7 @@ class Complex():
                 con = self.checkWhichConstraints(
                     ten_konkretny_point, constraintsFuns, cubeConstraints)
 
+                # print("Krok 7, ", con)
                 match con:
                     case 'functions':
                         # przesuniecie do centroidu o polowe odleglosci
@@ -201,7 +205,7 @@ class Complex():
                 print("Osiągnięto limit iteracji")
                 break
             if counter % 500 == 0:
-                print("Counter ", counter)
+                # print("Counter ", counter)
                 self.plotPolygon(objFunction)
                 self.addPointToComplex(constraintsFuns, cubeConstraints)
                 # self.plotPolygon(objFunction)
@@ -211,8 +215,8 @@ class Complex():
 
         # zwraca id optymalnego punktu, ktory daje najlepsza (najmniejsza) wartosc funkcji celu
         best_point = self.getBestPoint(objFunction)
-        print("Tyle iteracji:", counter)
-        print("Tyle punktów na koniec:", self.pointsCount)
+        print("\nLiczba iteracji algorytmu:", counter)
+        print("Liczba punktów na koniec:", self.pointsCount)
         return best_point, step_program
 
     def weights(self, objFunction):
@@ -575,8 +579,8 @@ class Complex():
     def getPointFromID(self, id):
 
         if id > self.pointsCount:
-            print("Nie ma punktu o takim ID")
-            return "Nie ma punktu o takim ID"
+            print("BLAD! Nie ma punktu o takim ID")
+            return "BLAD! Nie ma punktu o takim ID"
 
         for point in self.points:
             if point.getID() == id:
@@ -633,12 +637,18 @@ class Complex():
 
         # lista zsumowanych poszczegolnych wspolrzednych
         sum_x_var = [0] * self.xCount
-        self.display()
+        # self.display()
+
+        # print("Worst_point: ", end='')
+        # worst_point.display()
         # lista wspolrzednych centroidu
         c = []
 
         # sumowanie wspolrzednych kazdego punktu poza tym najgorszym
         for point in self.points:
+
+            # print("Teraz punkt: ", end='')
+            # point.display()
 
             # jezeli nie jest liczone centrum, to liczony jest centroid,
             # wtedy nie bierzemy pod uwage najgorszego punktu
@@ -682,12 +692,13 @@ class Complex():
 
     # zwraca punkt o najwiekszej wartosci funkcji celu
     def getWorstPoint(self, objFunction):
-
-        f_max = 0
+        # print("SZUKAM NAJGORSZEGO PUNKTU")
+        f_max = np.NINF
         rtn_point = None
 
         for point in self.points:
             value = self.objFunValue(objFunction, point)
+            # print("    - wartosc dla punktu ", point.getID(), " : ", value)
             if value > f_max:
                 f_max = value
                 rtn_point = point

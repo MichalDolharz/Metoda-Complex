@@ -14,69 +14,6 @@ def info(thing):
     print("\033[92m", thing, "\033[0m")
 
 
-def f1(var):
-    # print("f1", end=' ')
-    # print("f1 var[0]:", var[0])
-    # print("f1 var[1]:", var[1])
-    return var[0]+var[1]-2  # <= 0
-    # return var[0]+var[1]-2  # <= 0
-
-
-def f2(var):
-    # print("f2", end=' ')
-    # print("f2 var[0]:", var[0])
-    # print("f2 var[1]:", var[1])
-    return np.power(var[0], 2)-var[1]  # <= 0
-    # return np.power(var[0], 2)-var[1]  # <= 0
-
-
-def f1x(x1=0, x2=0, x3=0, x4=0, x5=0):
-    # print("f1", end=' ')
-    # print("f1 var[0]:", var[0])
-    # print("f1 var[1]:", var[1])
-    return x1+x2-2  # <= 0
-    # return var[0]+var[1]-2  # <= 0
-
-
-def f2x(x1=0, x2=0, x3=0, x4=0, x5=0):
-    # print("f2", end=' ')
-    # print("f2 var[0]:", var[0])
-    # print("f2 var[1]:", var[1])
-    return np.power(x1, 2)-x2  # <= 0
-    # return np.power(var[0], 2)-var[1]  # <= 0
-
-
-def f3x(x1=0, x2=0, x3=0, x4=0, x5=0):
-    # print("f3", end=' ')
-    return x3+x2-2  # <= 0
-
-
-def objectiveFun(var):
-    x = var[0]
-    y = var[1]
-    #z = var[2]
-    return np.power(x-2, 2) + np.power(y-2, 2)  # + np.power(z-2, 2)
-
-
-def objectiveFunx(x1=0, x2=0, x3=0, x4=0, x5=0):
-    x = x1
-    y = x2
-    #z = var[2]
-    return np.power(x-2, 2) + np.power(y-2, 2)  # + np.power(z-2, 2)
-
-
-def f(var):
-    return var[0] + var[1]
-
-
-def objFunction(x):
-    # eval() wykonuje funkcje zapisana w stringu o ile się da.
-    # To oznacza, ze zamiast podania funkcji
-    # mozna napisac dowolna instrukcje pythona,
-    # a to niebezpieczne i trzeba to jakos zabezpieczyc.
-    return eval(input("Podaj funkcje, np np.sin(x): "))
-
-
 def clear_canvas(figure):
     figure.get_tk_widget().forget()
     plt.close('all')
@@ -94,9 +31,10 @@ def draw_figure(canvas, figure, values):
 
 def okienko():
     cubeConstraints = []
-    constraintsFuns_print = []
     constraintsFuns = []
     constraintsFunsString = []
+    cubeConstr_list_print = []
+    constraintsFuns_print = []
     figure = None
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
@@ -106,7 +44,7 @@ def okienko():
             if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
                 break
             if event == "Dodaj-kostka":
-                if len(values["List-kostka"]) == 5:
+                if len(cubeConstr_list_print) == 5:
                     sg.Print(f'Wprowadzono już limit ograniczeń kostki!')
                     continue
                 if str(values['LowerConstr']) == "" or str(values['UpperConstr']) == "":
@@ -115,11 +53,11 @@ def okienko():
                 print('Dodano ograniczenie kostki')
                 cubeConstraints.append(
                     [float(values['LowerConstr']), float(values['UpperConstr'])])
-                cubeConstr_list_print = make_cubeConstr_list(cubeConstraints)
+                cubeConstr_list_print = (make_cubeConstr_list(cubeConstraints))
                 window['List-kostka'].update(cubeConstr_list_print)
 
             if event == "Dodaj-funkcja":
-                if len(values["List-funkcje"]) == 5:
+                if len(constraintsFuns_print) == 5:
                     sg.Print(f'Wprowadzono już limit ograniczeń funkcyjnych!')
                     continue
                 if str(values['-funConstr-']) == "":
@@ -173,9 +111,12 @@ def okienko():
                               objectiveFun, epsilon)
                 best_point, step_prog = kompleks.run(
                     objectiveFun, constraintsFuns, cubeConstraints, max_it)
-                best_point.display()
                 print("\n")
-                print("fmin", kompleks.getFmin(objectiveFun))
+                print("Znaleziony optymalny punkt:")
+                best_point.display(mode="multirow")
+                print("\n")
+                print("Wartość funkcji celu dla znalezionego punktu:")
+                print(kompleks.getFmin(objectiveFun))
 
                 # rysowanie wykresu
                 kompleks.plotPolygon(
@@ -201,7 +142,7 @@ def okienko():
                 window["slider-kroki"].update(range=(0, 0))
                 window["slider-kroki"].update(range=(0, len(step_prog)))
                 window['-kroki-'].update(len(step_prog))
-                window['-wys-krok-'].update('')
+                # window['-wys-krok-'].update('')
 
             # obsluga poruszania slajderem
             if event == "slider-kroki":
@@ -214,7 +155,7 @@ def okienko():
                 krok = int(values['slider-kroki'])
                 krok_minus = krok - 1
                 # print("Wyświetlam krok", krok)
-                window['-wys-krok-'].update(krok)
+                # window['-wys-krok-'].update(krok)
 
                 step_prog[krok_minus].plotPolygon(
                     objectiveFun, constraintsFunsString, tmp_Cube, print=False)
@@ -226,17 +167,11 @@ def okienko():
 
             # usuwanie zaznaczonego przedziału w liscie ogr. kostki
             if event == 'Usun-kostka' and values['List-kostka']:
-                #
-                #
-                # TU JEST PROBLEM
-                #
-                #
-                #
                 print("Usunięto ogr. kostki ", values['List-kostka'][0])
-                id = constraintsFuns_print.index(values['List-kostka'][0])
-                constraintsFuns_print.remove(values['List-kostka'][0])
-                constraintsFuns.pop(id)
-                window['List-kostka'].update()
+                id = cubeConstr_list_print.index(values['List-kostka'][0])
+                cubeConstraints.pop(id)
+                cubeConstr_list_print = make_cubeConstr_list(cubeConstraints)
+                window['List-kostka'].update(cubeConstr_list_print)
 
             # usuwanie zaznaczonej funkcji w liscie ogr. funkc.
             if event == 'Usun-funkcja' and values['List-funkcje']:

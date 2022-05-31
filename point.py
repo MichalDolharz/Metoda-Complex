@@ -32,15 +32,37 @@ class Point():
 
         print(" r:", '%.15f' % self.r, " phi:", self.phi, end='')
 
-    def display(self):
+    def display(self, mode='no_enter'):
 
-        for it in range(0, len(self.x)):
-            if self.x[it] < 0:
-                eqStr = "="
-            else:
-                eqStr = "= "
-            print(" x" + str(it), eqStr, '%.12f' %
-                  (self.x[it]), end='')
+        match mode:
+            # wszystko w jednej linii, brak przejścia do nowej linii na końcu
+            case 'no_enter':
+                for it in range(0, len(self.x)):
+                    if self.x[it] < 0:
+                        eqStr = "="
+                    else:
+                        eqStr = "= "
+                    print(" x" + str(it), eqStr, '%.12f' %
+                          (self.x[it]), end='')
+            # wszystko w jednej linii, przejście do nowej linii na końcu
+            case 'enter':
+                for it in range(0, len(self.x)):
+                    if self.x[it] < 0:
+                        eqStr = "="
+                    else:
+                        eqStr = "= "
+                    print(" x" + str(it), eqStr, '%.12f' %
+                          (self.x[it]))
+                print()
+            # kazda zmienna w nowej linii
+            case 'multirow':
+                for it in range(0, len(self.x)):
+                    if self.x[it] < 0:
+                        eqStr = "="
+                    else:
+                        eqStr = "= "
+                    print(" x" + str(it), eqStr, '%.12f' %
+                          (self.x[it]))
 
     def setID(self, new_id):
         self.id = new_id
@@ -69,5 +91,3 @@ class Point():
                 return tmp[0], tmp[1], tmp[2], tmp[3], None
             case 5:
                 return tmp[0], tmp[1], tmp[2], tmp[3], tmp[4]
-
-        
