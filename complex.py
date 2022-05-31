@@ -366,6 +366,16 @@ class Complex():
 
         point_p.set(new_x)
 
+    def move_sympyplot_to_axes(self, p, ax):
+        backend = p.backend(p)
+        backend.ax = ax
+        # Fix for > sympy v1.5
+        backend._process_series(backend.parent._series, ax, backend.parent)
+        backend.ax.spines['right'].set_color('none')
+        backend.ax.spines['bottom'].set_position('zero')
+        backend.ax.spines['top'].set_color('none')
+        plt.close(backend.fig)
+
     # laczy dwa punkty
     def connectPoints(self, ax, p1, p2):
         x_values = [p1[0], p2[0]]
@@ -386,51 +396,48 @@ class Complex():
 
     def plotObjFun(self, constraintsFunsString, cubeConstraints, ax):
 
-        n = []
         N = 100
-
+        # są tylko dwa ograniczenia, bo tylko dla tylu rysujemy
+        n_x1 = np.linspace(cubeConstraints[0][0], cubeConstraints[0][1], N)
         n_x2 = np.linspace(cubeConstraints[1][0], cubeConstraints[1][1], N)
 
-        # dla x1
-        n.append(np.linspace(cubeConstraints[0][0], cubeConstraints[0][1], N))
-        # od x3 do x5 (bez x2, bo on jest obliczany i wyświetlany)
-        for it in range(2, len(cubeConstraints)):
-            n.append(np.linspace(
-                cubeConstraints[it][0], cubeConstraints[it][1], N))
-
         # wszystkie możliwe zmienne
-        x1, x2, x3, x4, x5 = sp.symbols("x1, x2, x3, x4, x5")
-        xs = [x1, x3, x4, x5]
+        x1, x2 = sp.symbols("x1, x2")
+
         funs = []
+        p = []
+        x1_range = (x1, cubeConstraints[0][0], cubeConstraints[0][1])
+        x2_range = (x2, cubeConstraints[1][0], cubeConstraints[1][1])
         for it in range(0, len(constraintsFunsString)):
-            fun = []
-            expr = sp.parse_expr(constraintsFunsString[it])
 
-            if x1 in expr.free_symbols and len(expr.free_symbols) == 1:
-                tmp = []
-                # equation <-- expr = 0
-                equation = sp.Eq(expr, 0)
-                for ni in n_x2:
-                    solution = solvify(equation, x1, sp.Reals)
-                    tmp.append(solution[0])
-                ax.plot(tmp, n_x2, 'k')
+            expr = sp.parse_expr(constraintsFunsString[it] + "<=0")
 
-            elif x1 in expr.free_symbols and x2 in expr.free_symbols:
-                for jt in range(0, N):
-                    expr2 = expr.subs([(x1, n[0][jt])])
+            if x1 in expr.free_symbols and x2 in expr.free_symbols and len(expr.free_symbols) == 2:
+                p.append(sp.plot_implicit(expr, x1_range, x2_range, 
+                        line_color = "gray", alpha=1,  xlabel= "", ylabel= "", show=False, axis=True, margin=0, backend =  'matplotlib', axis_center='auto'))
 
-                    # equation <-- expr2 = 0
-                    equation = sp.Eq(expr2, 0)
-                    solution = solvify(equation, x2, sp.Complexes)
-                    if sp.im(solution[0]):
-                        tmp = []
-                        tmp.append(sp.re(solution[0]))
-                        solution = tmp[:]
-                    fun.append(solution[0])
+                funs.append(expr)
 
-                funs.append(fun)
+                if len(p)>1:
+                    p[0].extend(p[1])
 
-                ax.plot(n[0], fun, 'k')
+        match len(funs):
+            case 1:
+                andi = sp.And(funs[0])
+            case 2:
+                andi = sp.And(funs[0], funs[1])
+            case 3:
+                andi = sp.And(funs[0], funs[1], funs[2])
+            case 4:
+                andi = sp.And(funs[0], funs[1], funs[2], funs[3])
+            case 5:
+                andi = sp.And(funs[0], funs[1], funs[2], funs[3], funs[4])
+        
+        p_andi = sp.plot_implicit(andi, x1_range, x2_range, 
+            line_color = "k", alpha=1,  xlabel= "", ylabel= "", show=False, axis=True, margin=0, backend =  'matplotlib', axis_center='auto')
+
+        p[0].extend(p_andi)
+        self.move_sympyplot_to_axes(p[0], ax)
 
     # rysuje wielokat
     def plotPolygon(self, objFunction, constraintsFunsString, tmp_cubeConstraints, printing=False):

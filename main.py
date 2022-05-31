@@ -83,13 +83,6 @@ def okienko():
 
                 print("Uruchomiono algorytm")
 
-                # if not(values["xmax"]) and not(values["xmin"]) and not(values["ymax"]) and not(values["ymin"]):
-                #     window["xmin"].update(float(cubeConstraints[0][0]))
-                #     window["xmax"].update(float(cubeConstraints[0][1]))
-                #     window["ymin"].update(float(cubeConstraints[1][0]))
-                #     window["ymax"].update(float(cubeConstraints[1][1]))
-                #     plt.xlim(cubeConstraints[0][0], cubeConstraints[0][1])
-                #     plt.ylim(cubeConstraints[1][0], cubeConstraints[1][1])
                 if (not(values["xmax"]) and values["xmin"]) or (not(values["xmin"]) and values["xmax"]):
                     sg.Print(
                         f'Wprowadź oba ustawienia wykresu dla osi OX albo pozostaw pola puste dla wartości automatycznych!')
@@ -151,8 +144,6 @@ def okienko():
                 constraintsFuns = []
                 for ogr in constraintsFuns_print:
                     constraintsFuns.append(getFunction(ogr))
-                # cubeConstraints = [[-5, 5], [-5, 5]]
-                # constraintsFuns = [f1x, f2x]
 
                 # operacje na kompleksie
                 kompleks = Complex()
@@ -169,21 +160,10 @@ def okienko():
                 if len(cubeConstraints) == 2:
                     kompleks.plotPolygon(
                         objectiveFun, constraintsFunsString, cubeConstraints, printing=False)
-                    # plt.xlim(float(values["xmin"]), float(values["xmax"]))
-                    # plt.ylim(float(values["ymin"]), float(values["ymax"]))
-
                     makeKolorki(objectiveFun, values)
 
                     figure = draw_figure(
                         window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
-
-                # ustawienia wykresu
-                # xmin,xmax = plt.xlim()
-                # ymin,ymax = plt.ylim()
-                # window["xmin"].update(xmin)
-                # window["xmax"].update(xmax)
-                # window["ymin"].update(ymin)
-                # window["ymax"].update(ymax)
 
                 plt.xlim(float(values["xmin"]), float(values["xmax"]))
                 plt.ylim(float(values["ymin"]), float(values["ymax"]))
@@ -256,31 +236,13 @@ def makeKolorki(objectiveFun, values):
     Z = np.array(Z)
     Z = np.reshape(Z, (len(x), len(y)))
 
-    plt.contourf(X, Y, Z, extend='both', levels=500, cmap="rainbow")
+    plt.contourf(X, Y, Z, extend='both', levels=500, cmap="rainbow", alpha=0.9)
     plt.colorbar()
 
 
 def main():
 
     okienko()
-
-    # cubeConstraints = [[-5, 5], [-5, 5], [-5, 5]]#, [-1, 1]]  # , [-5, 5]]
-    # constraintsFuns = [f1x, f2x, f3x]
-    # step_prog = []
-
-    # epsilon = 0.001
-    # max_it = 5000
-    # # objectiveFun = getFunction("(x1-2)^2 + (x2-2)^2")
-    # kompleks = Complex()
-    # kompleks.fill(cubeConstraints, constraintsFuns, objectiveFunx, epsilon)
-    # kompleks.plotPolygon(objectiveFunx)
-    # best_point, step_prog = kompleks.run(objectiveFunx, constraintsFuns, cubeConstraints, max_it)
-    # best_point.display()
-    # print("kompleks")
-    # kompleks.display()
-    # kompleks.plotPolygon(objectiveFunx, print=True)
-    # for it in range(0, len(step_prog)):
-    #     print(step_prog[it])
 
 
 main()
