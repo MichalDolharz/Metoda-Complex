@@ -92,14 +92,10 @@ def okienko():
                         f'Wprowadź oba ustawienia wykresu dla osi OY albo pozostaw pola puste dla wartości automatycznych!')
                     continue
 
-                print("0")
-
                 if not(values["xmax"]):
                     window["xmax"].update(str(cubeConstraints[0][1]))
                     values["xmax"] = cubeConstraints[0][1]
                     # plt.xlim(float(values["xmin"]), float(values["xmax"]))
-
-                print("1")
 
                 if not(values["xmin"]):
                     window["xmin"].update(str(cubeConstraints[0][0]))
@@ -110,21 +106,15 @@ def okienko():
 
                 plt.xlim(float(values["xmin"]), float(values["xmax"]))
 
-                print("2")
-
                 if not(values["ymax"]):
                     window["ymax"].update(str(cubeConstraints[1][1]))
                     values["ymax"] = cubeConstraints[1][1]
                     # plt.ylim(float(values["ymin"]), float(values["ymax"]))
 
-                print("3")
-
                 if not(values["ymin"]):
                     window["ymin"].update(str(cubeConstraints[1][0]))
                     values["ymin"] = cubeConstraints[1][0]
                     # plt.ylim(float(values["ymin"]), float(values["ymax"]))
-
-                print("4")
 
                 # print("v ymin:", values["ymin"], "    x ymax:", values["ymax"])
 

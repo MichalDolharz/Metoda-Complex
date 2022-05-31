@@ -351,7 +351,7 @@ class Complex():
         point_id = point_p.getID()
 
         c = c_p.get()
-        print("tutaj np dziala,", point)
+        # print("tutaj np dziala,", point)
 
         # dla kolejnych wspolrzednych
         for x_it in range(0, self.xCount):
@@ -413,12 +413,12 @@ class Complex():
             expr = sp.parse_expr(constraintsFunsString[it] + "<=0")
 
             if x1 in expr.free_symbols and x2 in expr.free_symbols and len(expr.free_symbols) == 2:
-                p.append(sp.plot_implicit(expr, x1_range, x2_range, 
-                        line_color = "gray", alpha=1,  xlabel= "", ylabel= "", show=False, axis=True, margin=0, backend =  'matplotlib', axis_center='auto'))
+                p.append(sp.plot_implicit(expr, x1_range, x2_range,
+                                          line_color="gray", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto'))
 
                 funs.append(expr)
 
-                if len(p)>1:
+                if len(p) > 1:
                     p[0].extend(p[1])
 
         match len(funs):
@@ -432,9 +432,9 @@ class Complex():
                 andi = sp.And(funs[0], funs[1], funs[2], funs[3])
             case 5:
                 andi = sp.And(funs[0], funs[1], funs[2], funs[3], funs[4])
-        
-        p_andi = sp.plot_implicit(andi, x1_range, x2_range, 
-            line_color = "k", alpha=1,  xlabel= "", ylabel= "", show=False, axis=True, margin=0, backend =  'matplotlib', axis_center='auto')
+
+        p_andi = sp.plot_implicit(andi, x1_range, x2_range,
+                                  line_color="k", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto')
 
         p[0].extend(p_andi)
         self.move_sympyplot_to_axes(p[0], ax)
@@ -471,8 +471,8 @@ class Complex():
         #  centroid_pAAAA.display()
 
         centroid_AAA = centroid_pAAAA.get()
-        print("centroid:", centroid_AAA[0])
-        print("centroid:", centroid_AAA[1])
+        # print("centroid:", centroid_AAA[0])
+        # print("centroid:", centroid_AAA[1])
         ax.scatter(centroid_AAA[0], centroid_AAA[1])
 
         if printing:
@@ -491,12 +491,12 @@ class Complex():
 
         # rysuje centroid
         centroid_p = self.centroid(worst_point)
-        centroid_p.display()
+        # centroid_p.display()
         centroid = centroid_p.get().copy()
         ax.scatter(centroid[0], centroid[1], color="g")
-        print("centroid:", centroid)
-        print("centroid[0]", centroid[0])
-        print("centroid[1]", centroid[1])
+        # print("centroid:", centroid)
+        # print("centroid[0]", centroid[0])
+        # print("centroid[1]", centroid[1])
 
         # wyznacza centrum, potrzebne do wyznaczenia wsp. biegunowych
         centrum = self.centrum()
