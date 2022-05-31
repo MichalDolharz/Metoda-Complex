@@ -80,13 +80,35 @@ def okienko():
 
                 print("Uruchomiono algorytm")
 
-                if values["xmax"] == "" and values["xmin"] == "" and values["ymax"] == "" and values["ymin"] == "":
-                    window["xmin"].update(float(cubeConstraints[0][0]))
+                # if values["xmax"] == "" and values["xmin"] == "" and values["ymax"] == "" and values["ymin"] == "":
+                #     window["xmin"].update(float(cubeConstraints[0][0]))
+                #     window["xmax"].update(float(cubeConstraints[0][1]))
+                #     window["ymin"].update(float(cubeConstraints[1][0]))
+                #     window["ymax"].update(float(cubeConstraints[1][1]))
+                #     plt.xlim(cubeConstraints[0][0], cubeConstraints[0][1])
+                #     plt.ylim(cubeConstraints[1][0], cubeConstraints[1][1])
+                if (values["xmax"] == "" and values["xmin"]) or (values["xmin"] == "" and values["xmax"]):
+                    sg.Print(f'Wprowadź oba ustawienia wykresu dla osi OX albo pozostaw puste dla automatycznych!')
+                    continue
+                if (values["ymax"] == "" and values["ymin"]) or (values["ymin"] == "" and values["ymax"]):
+                    sg.Print(f'Wprowadź oba ustawienia wykresu dla osi OY albo pozostaw puste dla automatycznych!')
+                    continue
+                if values["xmax"] == "":
                     window["xmax"].update(float(cubeConstraints[0][1]))
-                    window["ymin"].update(float(cubeConstraints[1][0]))
+                    # print(values["xmax"], "typ: ", type(values["xmax"]))
+                    # print(float(values["xmax"]), "typ: ", type(float(values["xmax"])))
+                    plt.xlim(float(values["xmin"]), float(values["xmax"]))
+                if values["xmin"] == "":
+                    print("cos")
+                    window["xmin"].update(float(cubeConstraints[0][0]))
+                    plt.xlim(float(values["xmin"]), float(values["xmax"]))
+                if values["ymax"] == "":
                     window["ymax"].update(float(cubeConstraints[1][1]))
-                    plt.xlim(cubeConstraints[0][0], cubeConstraints[0][1])
-                    plt.ylim(cubeConstraints[1][0], cubeConstraints[1][1])
+                    plt.ylim(float(values["ymin"]), float(values["ymax"]))
+                if values["ymin"] == "":
+                    window["ymin"].update(float(cubeConstraints[1][0]))
+                    plt.ylim(float(values["ymin"]), float(values["ymax"]))
+                
 
                 if len(cubeConstraints) < 5:
                     tmp_Cube = cubeConstraints[:]
@@ -119,15 +141,16 @@ def okienko():
                 print(kompleks.getFmin(objectiveFun))
 
                 # rysowanie wykresu
-                kompleks.plotPolygon(
-                    objectiveFun, constraintsFunsString, tmp_Cube, print=False)
-                # plt.xlim(float(values["xmin"]), float(values["xmax"]))
-                # plt.ylim(float(values["ymin"]), float(values["ymax"]))
+                if len(cubeConstraints) == 2:
+                    kompleks.plotPolygon(
+                        objectiveFun, constraintsFunsString, cubeConstraints, print=False)
+                    # plt.xlim(float(values["xmin"]), float(values["xmax"]))
+                    # plt.ylim(float(values["ymin"]), float(values["ymax"]))
 
-                makeKolorki(objectiveFun)
+                    makeKolorki(objectiveFun)
 
-                figure = draw_figure(
-                    window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
+                    figure = draw_figure(
+                        window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
 
                 # ustawienia wykresu
                 # xmin,xmax = plt.xlim()
