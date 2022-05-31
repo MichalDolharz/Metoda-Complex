@@ -351,6 +351,7 @@ class Complex():
         point_id = point_p.getID()
 
         c = c_p.get()
+        print("tutaj np dziala,", point)
 
         # dla kolejnych wspolrzednych
         for x_it in range(0, self.xCount):
@@ -407,6 +408,7 @@ class Complex():
 
             if x1 in expr.free_symbols and len(expr.free_symbols) == 1:
                 tmp = []
+                # equation <-- expr = 0
                 equation = sp.Eq(expr, 0)
                 for ni in n_x2:
                     solution = solvify(equation, x1, sp.Reals)
@@ -415,9 +417,9 @@ class Complex():
 
             elif x1 in expr.free_symbols and x2 in expr.free_symbols:
                 for jt in range(0, N):
-                    expr2 = expr.subs(
-                        [(x1, n[0][jt]), (x3, n[1][jt]), (x4, n[2][jt]), (x5, n[3][jt])])
+                    expr2 = expr.subs([(x1, n[0][jt])])
 
+                    # equation <-- expr2 = 0
                     equation = sp.Eq(expr2, 0)
                     solution = solvify(equation, x2, sp.Complexes)
                     if sp.im(solution[0]):
@@ -431,7 +433,7 @@ class Complex():
                 ax.plot(n[0], fun, 'k')
 
     # rysuje wielokat
-    def plotPolygon(self, objFunction, constraintsFunsString, tmp_cubeConstraints, print=False):
+    def plotPolygon(self, objFunction, constraintsFunsString, tmp_cubeConstraints, printing=False):
 
         fig, ax = plt.subplots()
         ax.set_title('')
@@ -441,13 +443,6 @@ class Complex():
 
         # rysuje funkcje ograniczen
         self.plotObjFun(constraintsFunsString, tmp_cubeConstraints, ax)
-
-        worst_point = self.getWorstPoint(objFunction)
-
-        # rysuje centroid
-        centroid_p = self.centroid(worst_point)
-        centroid = centroid_p.get()
-        ax.scatter(centroid[0], centroid[1])
 
         # wyznacza centrum, potrzebne do wyznaczenia wsp. biegunowych
         centrum = self.centrum()
@@ -461,7 +456,19 @@ class Complex():
         # posortowane punkty sa ze soba kolejno laczone
         self.createPolygon(ax)
 
-        if print:
+        worst_point = self.getWorstPoint(objFunction)
+
+        # rysuje centroid
+        centroid_pAAAA = self.centroid(worst_point)
+        # print("zwrocilem juz")
+        #  centroid_pAAAA.display()
+
+        centroid_AAA = centroid_pAAAA.get()
+        print("centroid:", centroid_AAA[0])
+        print("centroid:", centroid_AAA[1])
+        ax.scatter(centroid_AAA[0], centroid_AAA[1])
+
+        if printing:
             plt.show()
 
     # rysuje wielokat ponownie
@@ -477,8 +484,12 @@ class Complex():
 
         # rysuje centroid
         centroid_p = self.centroid(worst_point)
-        centroid = centroid_p.get()
-        ax.scatter(centroid[0], centroid[1])
+        centroid_p.display()
+        centroid = centroid_p.get().copy()
+        ax.scatter(centroid[0], centroid[1], color="g")
+        print("centroid:", centroid)
+        print("centroid[0]", centroid[0])
+        print("centroid[1]", centroid[1])
 
         # wyznacza centrum, potrzebne do wyznaczenia wsp. biegunowych
         centrum = self.centrum()

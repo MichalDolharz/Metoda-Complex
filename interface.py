@@ -63,8 +63,8 @@ logs = sg.Frame(
     "Komunikaty", layout=logs_layout, size=(460, 300))
 
 chart_sett_layout = [
-    [sg.Text("Oś X: od", size=(7, 0)), sg.InputText(size=(5, 0), key="xmin"),
-     sg.Text("do", size=(2, 0)), sg.InputText(size=(5, 0), key="xmax")],
+    [sg.Text("Oś X: od", size=(7, 0)), sg.InputText(size=(5, 0), key="xmin", default_text=""),
+     sg.Text("do", size=(2, 0)), sg.InputText(size=(5, 0), key="xmax", default_text="")],
     [sg.Text("Oś Y: od", size=(7, 0)), sg.InputText(size=(5, 0), key="ymin"), sg.Text("do", size=(2, 0)), sg.InputText(size=(5, 0), key="ymax")]]
 
 chart_sett = sg.Frame(

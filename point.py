@@ -75,7 +75,7 @@ class Point():
 
     # zwraca tablice wspolrzednych punktu
     def get(self):
-        return self.x
+        return self.x[:]
 
     # zwraca wartości każdej wspolrzednej punktu osobno
     def get_xi(self):
