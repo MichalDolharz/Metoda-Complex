@@ -1,6 +1,5 @@
 import re
 import numpy as np
-from typing import Callable, List
 
 replace = {
     'sin': 'np.sin',
@@ -15,7 +14,7 @@ replace = {
 }
 
 allowed = {
-    'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13', 'x14', 'x15',
+    'x1', 'x2', 'x3', 'x4', 'x5',
     'sin',
     'cos',
     'exp',
@@ -30,9 +29,14 @@ allowed = {
 
 
 def getFunction(funcString: str):
-
+    xs = ['x1', 'x2', 'x3', 'x4', 'x5']
+    counter = 0
     # Looking for not allowed expressions. If one is found, an exception is thrown.
     for expr in re.findall('[a-zA-Z_]+[0-9]*', funcString):
+        if expr in xs:
+            xs.remove(expr)
+            counter += 1
+
         if(expr not in allowed):
             raise Exception(f'{expr} is not allowed in function')
 
@@ -46,7 +50,7 @@ def getFunction(funcString: str):
 
         return eval(funcString)
 
-    return parsedFun
+    return parsedFun, counter
 
 
 def getFunctionString(funcString: str):

@@ -95,45 +95,40 @@ def okienko():
                 if not(values["xmax"]):
                     window["xmax"].update(str(cubeConstraints[0][1]))
                     values["xmax"] = cubeConstraints[0][1]
-                    # plt.xlim(float(values["xmin"]), float(values["xmax"]))
 
                 if not(values["xmin"]):
                     window["xmin"].update(str(cubeConstraints[0][0]))
                     values["xmin"] = cubeConstraints[0][0]
-                    # plt.xlim(float(values["xmin"]), float(values["xmax"]))
-
-                # print("v xmin:", values["xmin"], "    v xmax:", values["xmax"])
 
                 plt.xlim(float(values["xmin"]), float(values["xmax"]))
 
                 if not(values["ymax"]):
                     window["ymax"].update(str(cubeConstraints[1][1]))
                     values["ymax"] = cubeConstraints[1][1]
-                    # plt.ylim(float(values["ymin"]), float(values["ymax"]))
 
                 if not(values["ymin"]):
                     window["ymin"].update(str(cubeConstraints[1][0]))
                     values["ymin"] = cubeConstraints[1][0]
-                    # plt.ylim(float(values["ymin"]), float(values["ymax"]))
-
-                # print("v ymin:", values["ymin"], "    x ymax:", values["ymax"])
 
                 plt.ylim(float(values["ymin"]), float(values["ymax"]))
-
-                if len(cubeConstraints) < 5:
-                    tmp_Cube = cubeConstraints[:]
-                    while not (len(tmp_Cube) == 5):
-                        tmp_Cube.append([0, 0])
 
                 # przypisywanie wartości z okna do zmiennych
                 epsilon = float(values['-epsilon-'])
                 max_it = float(values['-max-it-'])
 
                 # parsowanie funkcji
-                objectiveFun = getFunction(values['combo-objFun'])
+                objectiveFun, amount_of_xs = getFunction(values['combo-objFun'])
+
+                if not (amount_of_xs <= len(cubeConstraints)):
+                    sg.Print(
+                        f'Liczba ograniczeń koski nie zgadza się z liczbą zmiennych!\nKażda zmienna musi mieć swoje ograniczenie')
+                    continue
+
                 constraintsFuns = []
+                # NIE RUSZAĆ TMP
                 for ogr in constraintsFuns_print:
-                    constraintsFuns.append(getFunction(ogr))
+                    funs, tmp = getFunction(ogr)
+                    constraintsFuns.append(funs)
 
                 # operacje na kompleksie
                 kompleks = Complex()
@@ -145,25 +140,39 @@ def okienko():
                 best_point.display(mode="multirow")
                 print("\nWartość funkcji celu dla znalezionego punktu:")
                 print(kompleks.getFmin(objectiveFun))
+                print("\nWartość funkcji ograniczeń dla znalezionego punktu:")
+                for it in range(0, len(constraintsFuns)):
+                    print("g" +str(it+1) + ":", kompleks.constFunValue(constraintsFuns[it], best_point))
 
                 # rysowanie wykresu
-                if len(cubeConstraints) == 2:
+                if amount_of_xs == 2:
                     kompleks.plotPolygon(
                         objectiveFun, constraintsFunsString, cubeConstraints, printing=False)
                     makeKolorki(objectiveFun, values)
 
                     figure = draw_figure(
                         window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
+                    plt.xlim(float(values["xmin"]), float(values["xmax"]))
+                    plt.ylim(float(values["ymin"]), float(values["ymax"]))
 
-                plt.xlim(float(values["xmin"]), float(values["xmax"]))
-                plt.ylim(float(values["ymin"]), float(values["ymax"]))
+                    # kroki i slajder init
+                    window["slider-kroki"].update(range=(0, 0))
+                    window["slider-kroki"].update(range=(0, len(step_prog)))
+                    window['-kroki-'].update(len(step_prog))
+                else:
+                    window['-kroki-'].update("Kroki wyświetlane tylko dla funkcji dwóch zmiennych")
+                    plt.text(0, 0, "Brak wykresu", size=30, rotation=0,
+                    ha="center", va="center",
+                    color="#FDCB52",
+                    bbox=dict(boxstyle="round",
+                            ec="#2C2825",
+                            fc="#705E52",
+                            )
+                    )
+                    figure = draw_figure(
+                        window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
 
-                # kroki i slajder init
-                stepKompleks = Complex()
-                window["slider-kroki"].update(range=(0, 0))
-                window["slider-kroki"].update(range=(0, len(step_prog)))
-                window['-kroki-'].update(len(step_prog))
-                # window['-wys-krok-'].update('')
+                
 
             # obsluga poruszania slajderem
             if event == "slider-kroki":
@@ -179,7 +188,7 @@ def okienko():
                 # window['-wys-krok-'].update(krok)
 
                 step_prog[krok_minus].plotPolygon(
-                    objectiveFun, constraintsFunsString, tmp_Cube, printing=False)
+                    objectiveFun, constraintsFunsString, cubeConstraints, printing=False)
                 makeKolorki(objectiveFun, values)
                 plt.xlim(float(values["xmin"]), float(values["xmax"]))
                 plt.ylim(float(values["ymin"]), float(values["ymax"]))
@@ -219,14 +228,18 @@ def makeKolorki(objectiveFun, values):
     plt.ylim(float(values["ymin"]), float(values["ymax"]))
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    x = np.linspace(xmin - 2, xmax + 2)
-    y = np.linspace(ymin - 2, ymax + 2)
+    x = np.linspace(xmin, xmax)
+    y = np.linspace(ymin, ymax)
     X, Y = np.meshgrid(x, y)
     Z = objectiveFun(X, Y)
     Z = np.array(Z)
     Z = np.reshape(Z, (len(x), len(y)))
 
-    plt.contourf(X, Y, Z, extend='both', levels=500, cmap="rainbow", alpha=0.9)
+    cnt = plt.contourf(X, Y, Z, extend='both', levels=500, cmap="rainbow", alpha=0.8)
+    for c in cnt.collections:
+        c.set_edgecolor("none")
+        c.set_linewidth(0.00000000000000000000000001)
+
     plt.colorbar()
 
 

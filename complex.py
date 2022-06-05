@@ -380,7 +380,7 @@ class Complex():
     def connectPoints(self, ax, p1, p2):
         x_values = [p1[0], p2[0]]
         y_values = [p1[1], p2[1]]
-        ax.plot(x_values, y_values, 'ko', linestyle='-')
+        ax.plot(x_values, y_values, 'ko', linestyle='-', zorder=10)
 
     # laczy kolejne punkty tworzac wielokat
     def createPolygon(self, ax):
@@ -408,36 +408,39 @@ class Complex():
         p = []
         x1_range = (x1, cubeConstraints[0][0], cubeConstraints[0][1])
         x2_range = (x2, cubeConstraints[1][0], cubeConstraints[1][1])
-        for it in range(0, len(constraintsFunsString)):
+        if len(constraintsFunsString) == 0:
+            return
+        else:
+            for it in range(0, len(constraintsFunsString)):
 
-            expr = sp.parse_expr(constraintsFunsString[it] + "<=0")
+                expr = sp.parse_expr(constraintsFunsString[it] + "<=0")
 
-            if x1 in expr.free_symbols and x2 in expr.free_symbols and len(expr.free_symbols) == 2:
-                p.append(sp.plot_implicit(expr, x1_range, x2_range,
-                                          line_color="gray", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto'))
+                if x1 in expr.free_symbols and x2 in expr.free_symbols and len(expr.free_symbols) == 2:
+                    p.append(sp.plot_implicit(expr, x1_range, x2_range,
+                                            line_color="gray", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto'))
 
-                funs.append(expr)
+                    funs.append(expr)
 
-                if len(p) > 1:
-                    p[0].extend(p[1])
+                    if len(p) > 1:
+                        p[0].extend(p[1])
 
-        match len(funs):
-            case 1:
-                andi = sp.And(funs[0])
-            case 2:
-                andi = sp.And(funs[0], funs[1])
-            case 3:
-                andi = sp.And(funs[0], funs[1], funs[2])
-            case 4:
-                andi = sp.And(funs[0], funs[1], funs[2], funs[3])
-            case 5:
-                andi = sp.And(funs[0], funs[1], funs[2], funs[3], funs[4])
+            match len(funs):
+                case 1:
+                    andi = sp.And(funs[0])
+                case 2:
+                    andi = sp.And(funs[0], funs[1])
+                case 3:
+                    andi = sp.And(funs[0], funs[1], funs[2])
+                case 4:
+                    andi = sp.And(funs[0], funs[1], funs[2], funs[3])
+                case 5:
+                    andi = sp.And(funs[0], funs[1], funs[2], funs[3], funs[4])
 
-        p_andi = sp.plot_implicit(andi, x1_range, x2_range,
-                                  line_color="k", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto')
+            p_andi = sp.plot_implicit(andi, x1_range, x2_range,
+                                    line_color="k", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto')
 
-        p[0].extend(p_andi)
-        self.move_sympyplot_to_axes(p[0], ax)
+            p[0].extend(p_andi)
+            self.move_sympyplot_to_axes(p[0], ax)
 
     # rysuje wielokat
     def plotPolygon(self, objFunction, constraintsFunsString, tmp_cubeConstraints, printing=False):
@@ -466,14 +469,14 @@ class Complex():
         worst_point = self.getWorstPoint(objFunction)
 
         # rysuje centroid
-        centroid_pAAAA = self.centroid(worst_point)
+        centroid_p = self.centroid(worst_point)
         # print("zwrocilem juz")
         #  centroid_pAAAA.display()
 
-        centroid_AAA = centroid_pAAAA.get()
+        centroid = centroid_p.get()
         # print("centroid:", centroid_AAA[0])
         # print("centroid:", centroid_AAA[1])
-        ax.scatter(centroid_AAA[0], centroid_AAA[1])
+        ax.scatter(centroid[0], centroid[1], zorder=5)
 
         if printing:
             plt.show()
@@ -736,6 +739,11 @@ class Complex():
                 rtn_point = point
 
         return rtn_point
+
+    # funkcja celu, zwraca wartosc dla danego punktu
+    def constFunValue(self, constraintsFun, point):
+        x1, x2, x3, x4, x5 = point.get_xi()
+        return constraintsFun(x1, x2, x3, x4, x5)
 
     # zwraca punkt o najmniejszej wartosci funkcji celu
     def getFmin(self, objFunction):
