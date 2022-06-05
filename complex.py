@@ -24,7 +24,6 @@ class Complex():
         # self.xCount = len(new_points[0])
 
     def fill(self, cubeConstraints, constraintsFuns, objFunction, epsilon):
-        print("fill")
         # wartosc do warunku stopu
         self.epsilon = epsilon
 
@@ -97,7 +96,6 @@ class Complex():
                 # tabY.append(p[1])
                 new_x = []
                 for it in range(0, self.xCount):
-                    print("losuje dla x", it, end='')
                     l = cubeConstraints[it][0]
                     u = cubeConstraints[it][1]
                     new_x.append(np.random.uniform(l, u))
