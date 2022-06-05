@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 
-sg.theme('DarkAmber')
+
 
 
 def make_cubeConstr_list(cubeConstr_list):
@@ -12,13 +12,15 @@ def make_cubeConstr_list(cubeConstr_list):
     return cubeConstr_list_print
 
 
+sg.theme('DarkAmber')
+
 objFun_list = ["(x1-2)^2 + (x2-2)^2",
-               "(x1-2)^2 + (x2-2)^2 + (x3-2)^2",
-               "(x1-2)^2 + (x1-x2^2)^2",
-               "x1^4+x2^4-x1^2-x2^2"]
+            "(x1-2)^2 + (x2-2)^2 + (x3-2)^2",
+            "(x1-2)^2 + (x1-x2^2)^2",
+            "x1^4+x2^4-x1^2-x2^2"]
 objFun_layout = [
     [sg.Text("f_min = "),
-     sg.Combo(objFun_list, default_value=objFun_list[0], size=(55, 1), key='combo-objFun')]]
+    sg.Combo(objFun_list, default_value=objFun_list[0], size=(55, 1), key='combo-objFun')]]
 
 objFun = sg.Frame(
     "Funkcja celu", size=(460, 50), layout=objFun_layout)
@@ -27,9 +29,9 @@ objFun = sg.Frame(
 cubeConstr_list_print = []
 cubeConstr_layout = [
     [sg.Push(), sg.InputText(size=(5, 0), key="LowerConstr", default_text="-5"), sg.Text("≤ xi ≤",
-                                                                                         font=("Arial", 15)), sg.InputText(size=(5, 0), key="UpperConstr", default_text="5"), sg.Push()],
+                                                                                        font=("Arial", 15)), sg.InputText(size=(5, 0), key="UpperConstr", default_text="5"), sg.Push()],
     [sg.Submit("Dodaj", key="Dodaj-kostka", size=(12, 1)), sg.Push(),
-     sg.Submit("Usuń", key="Usun-kostka", size=(12, 1))],
+    sg.Submit("Usuń", key="Usun-kostka", size=(12, 1))],
     [sg.Listbox([], no_scrollbar=False,  s=(28, 5), key='List-kostka')]]
 
 
@@ -38,13 +40,13 @@ cubeConstraints = sg.Frame(
 
 constraintFun_layout = [
     [sg.InputText(size=(20), key='-funConstr-', default_text='x1^2-x2'),
-     sg.Push(), sg.Text("≤ 0", font=("Arial", 15))],
+    sg.Push(), sg.Text("≤ 0", font=("Arial", 15))],
     [sg.Submit("Dodaj", key="Dodaj-funkcja", size=(12, 1)),
-     sg.Submit("Usuń", key="Usun-funkcja", size=(12, 1))],
+    sg.Submit("Usuń", key="Usun-funkcja", size=(12, 1))],
     [sg.Listbox([],  enable_events=True, no_scrollbar=False,  s=(28, 5), key='List-funkcje'), sg.Text("≤ 0", font=("Arial", 15))]]
 
 constraintsFun = sg.Frame("Ograniczenia funkcyjne", size=(220, 180),
-                          layout=constraintFun_layout)
+                        layout=constraintFun_layout)
 # sg.HSeparator()
 algorithm_layout = [
     [sg.Text("Epsilon", size=(10, 1)), sg.InputText(
@@ -53,7 +55,7 @@ algorithm_layout = [
         size=(10), key='-max-it-', default_text="5000")]]
 
 algorithm = sg.Frame("Parametry algorytmu",
-                     layout=algorithm_layout, size=(220, 80))
+                    layout=algorithm_layout, size=(220, 80))
 
 logs_layout = [
     [sg.Output(size=(61, 14), key='logi')],
@@ -64,7 +66,7 @@ logs = sg.Frame(
 
 chart_sett_layout = [
     [sg.Text("Oś X: od", size=(7, 0)), sg.InputText(size=(5, 0), key="xmin", default_text=""),
-     sg.Text("do", size=(2, 0)), sg.InputText(size=(5, 0), key="xmax", default_text="")],
+    sg.Text("do", size=(2, 0)), sg.InputText(size=(5, 0), key="xmax", default_text="")],
     [sg.Text("Oś Y: od", size=(7, 0)), sg.InputText(size=(5, 0), key="ymin"), sg.Text("do", size=(2, 0)), sg.InputText(size=(5, 0), key="ymax")]]
 
 chart_sett = sg.Frame(
@@ -92,9 +94,9 @@ Column2 = [[matplotlib_], [matplotlib_sett]]
 
 #Column1 = [[objFun], [cubeConstraints, constraintsFun], [algorithm, chart_sett], [logs]]
 #Column2 = [[matplotlib_], [matplotlib_sett]]
-
 layout = [[sg.Column(Column1, size=(500, 650), pad=(0, 0), vertical_alignment='top'), sg.Column(
     Column2, size=(680, 650), pad=(0, 0), vertical_alignment='top')]]
 
 # Create the Window
-window = sg.Window('Metoda Complex', layout)
+window = sg.Window('Metoda Complex', layout,resizable=True, use_custom_titlebar=True)
+

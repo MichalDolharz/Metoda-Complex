@@ -41,7 +41,7 @@ def okienko():
     figure = None
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
-        event, values = window.read()
+        event, values = window.read(timeout=100)
         try:
 
             if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
@@ -80,6 +80,10 @@ def okienko():
                     clear_canvas(figure)
 
                 plt.clf()
+                if len(cubeConstraints) < 2:
+                    sg.Print(
+                        f'Wprowadź ograniczenia zmiennych!')
+                    continue
 
                 print("Uruchomiono algorytm")
 
