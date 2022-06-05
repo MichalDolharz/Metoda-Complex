@@ -14,10 +14,9 @@ def make_cubeConstr_list(cubeConstr_list):
 
 sg.theme('DarkAmber')
 
-objFun_list = ["(x1-2)^2 + (x2-2)^2",
-            "(x1-2)^2 + (x2-2)^2 + (x3-2)^2",
-            "(x1-2)^2 + (x1-x2^2)^2",
-            "x1^4+x2^4-x1^2-x2^2"]
+objFun_list = ["","(x1-2)^2 + (x1-x2^2)^2",
+            "x1^4+x2^4-x1^2-x2^2",
+            "x1^2+x2^2+2x3^2+x4^2-5x1-5x2-21x3+7x4"]
 objFun_layout = [
     [sg.Text("f_min = "),
     sg.Combo(objFun_list, default_value=objFun_list[0], size=(55, 1), key='combo-objFun')]]
@@ -98,5 +97,5 @@ layout = [[sg.Column(Column1, size=(500, 650), pad=(0, 0), vertical_alignment='t
     Column2, size=(680, 650), pad=(0, 0), vertical_alignment='top')]]
 
 # Create the Window
-window = sg.Window('Metoda Complex', layout,resizable=True, use_custom_titlebar=True)
+window = sg.Window('Metoda Complex', layout)
 
