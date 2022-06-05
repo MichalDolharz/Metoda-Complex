@@ -38,7 +38,7 @@ cubeConstraints = sg.Frame(
     "Ograniczenia kostki", size=(220, 180), layout=cubeConstr_layout)
 
 constraintFun_layout = [
-    [sg.InputText(size=(20), key='-funConstr-', default_text='x1^2-x2'),
+    [sg.InputText(size=(20), key='-funConstr-', default_text=''),
     sg.Push(), sg.Text("≤ 0", font=("Arial", 15))],
     [sg.Submit("Dodaj", key="Dodaj-funkcja", size=(12, 1)),
     sg.Submit("Usuń", key="Usun-funkcja", size=(12, 1))],
