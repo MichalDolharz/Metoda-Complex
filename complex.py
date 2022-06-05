@@ -24,7 +24,7 @@ class Complex():
         # self.xCount = len(new_points[0])
 
     def fill(self, cubeConstraints, constraintsFuns, objFunction, epsilon):
-
+        print("fill")
         # wartosc do warunku stopu
         self.epsilon = epsilon
 
@@ -70,12 +70,13 @@ class Complex():
             self.addPoint(tmp_point, constraintsFuns, cubeConstraints)
 
     # Dodaje podany punkt do complexu. Sprawdza, czy znajduje sie w obszarze dopuszczalnym, jezeli nie, to go poprawia
+
     def addPoint(self, point, constraintsFuns, cubeConstraints):
 
         point = self.correctPoint(point, constraintsFuns, cubeConstraints)
         self.points.append(
             Point(point.get(), point.getID()))
-
+        point.display()
         self.pointsCount += 1
 
     # Sprawdza, czy podany punkt znajduje sie w obszarze dopuszczalnym,
@@ -84,22 +85,21 @@ class Complex():
     def correctPoint(self, point, constraintsFuns, cubeConstraints):
         # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
         again = True
-        while again:  # x_var_it <= self.x_variables:
 
-            # Funkcja zwraca wartosci:
-            #   – True, jezeli punkt spelnia warunki ograniczen
-            #   – False, jezeli punkt nie spelnia chociaz jednej funkcji ograniczen
-            again = not(self.checkConstraints(
-                point, constraintsFuns, cubeConstraints))
+        while again:  # x_var_it <= self.x_variables:
 
             # jezeli punkt nie spelnia ograniczen, to
             # w przypadku pierwszego punktu losowanie tego punktu jest powtarzane
             if point.getID() == 0 and again:
+                # print("\npierwszy punkt, powtarzam, bo ", end='')
+                # p = point.get().copy()
+                # tabX.append(p[0])
+                # tabY.append(p[1])
+                new_x = []
                 for it in range(0, self.xCount):
+                    print("losuje dla x", it, end='')
                     l = cubeConstraints[it][0]
                     u = cubeConstraints[it][1]
-                new_x = []
-                for x0_it in range(0, self.xCount):
                     new_x.append(np.random.uniform(l, u))
 
                 point.set(new_x)
@@ -108,6 +108,27 @@ class Complex():
             # w przypadku kazdego innego punktu jest on przesuwany w strone centrum zaakceptowanych juz punktow o polowe odleglosci
             elif point.getID() != 0 and again:
                 self.moveHalfwayToCentrum(point)
+
+            # Funkcja zwraca wartosci:
+            #   – True, jezeli punkt spelnia warunki ograniczen
+            #   – False, jezeli punkt nie spelnia chociaz jednej funkcji ograniczen
+            again = not(self.checkConstraints(
+                point, constraintsFuns, cubeConstraints))
+
+        # circleX = np.linspace(-3, -1, 50)
+        # print(circleX)
+        # circleY1 = []
+        # circleY2 = []
+        # for x in circleX:
+        #     circleY1.append(np.sqrt(1 - np.power(x+2, 2)))
+        #     circleY2.append(-np.sqrt(1 - np.power(x+2, 2)))
+
+        # # print(circleY1)
+        # fig, ax = plt.subplots()
+        # ax.scatter(tabX, tabY)
+        # ax.plot(circleX, circleY1)
+        # ax.plot(circleX, circleY2)
+        # plt.show()
 
         # jezeli punkt spelnia ograniczenia, to program wychodzi z petli while i zwraca ten punkt
         return point
@@ -133,6 +154,7 @@ class Complex():
         step_program = []
 
         # KROK 2,3
+        tmpcounter2 = 0
         # dopoki warunek stopu nie jest spelniony
         while (self.convergence() == False):
             # self.plotPolygon(objFunction)
@@ -163,6 +185,7 @@ class Complex():
 
             # dopoki odbity punkt nie znajduje sie w obszarze dopuszczalnym
             # to bedzie poprawiany wewnatrz petli
+            tmpcounter = 0
             while not(self.checkConstraints(ten_konkretny_point, constraintsFuns, cubeConstraints)):
                 # self.plotPolygon(objFunction)
                 # KROK 7
@@ -333,7 +356,6 @@ class Complex():
         # return Point(x, point.getID())  # -100)
 
     # przesuwa punkt do centrum o polowe odleglosci
-
     def moveHalfwayToCentrum(self, point):
         centrum = self.centrum()
         self.moveHalfwayTo(point, centrum)
@@ -416,7 +438,7 @@ class Complex():
                 expr = sp.parse_expr(constraintsFunsString[it] + "<=0")
                 if x1 in expr.free_symbols or x2 in expr.free_symbols and len(expr.free_symbols) < 3:
                     p.append(sp.plot_implicit(expr, x1_range, x2_range,
-                                            line_color="gray", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto'))
+                                              line_color="gray", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto'))
 
                     funs.append(expr)
 
@@ -436,7 +458,7 @@ class Complex():
                     andi = sp.And(funs[0], funs[1], funs[2], funs[3], funs[4])
 
             p_andi = sp.plot_implicit(andi, x1_range, x2_range,
-                                    line_color="k", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto')
+                                      line_color="k", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto')
 
             p[0].extend(p_andi)
             self.move_sympyplot_to_axes(p[0], ax)
