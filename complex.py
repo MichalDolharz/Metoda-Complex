@@ -414,8 +414,7 @@ class Complex():
             for it in range(0, len(constraintsFunsString)):
 
                 expr = sp.parse_expr(constraintsFunsString[it] + "<=0")
-
-                if x1 in expr.free_symbols and x2 in expr.free_symbols and len(expr.free_symbols) == 2:
+                if x1 in expr.free_symbols or x2 in expr.free_symbols and len(expr.free_symbols) < 3:
                     p.append(sp.plot_implicit(expr, x1_range, x2_range,
                                             line_color="gray", alpha=1,  xlabel="", ylabel="", show=False, axis=True, margin=0, backend='matplotlib', axis_center='auto'))
 
