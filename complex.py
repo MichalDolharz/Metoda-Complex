@@ -75,7 +75,7 @@ class Complex():
         point = self.correctPoint(point, constraintsFuns, cubeConstraints)
         self.points.append(
             Point(point.get(), point.getID()))
-        point.display()
+        # point.display()
         self.pointsCount += 1
 
     # Sprawdza, czy podany punkt znajduje sie w obszarze dopuszczalnym,
@@ -84,9 +84,11 @@ class Complex():
     def correctPoint(self, point, constraintsFuns, cubeConstraints):
         # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
         again = True
-
+        # debug_counter_1 = 0
+        # debug_counter_2 = 0
         while again:  # x_var_it <= self.x_variables:
-
+            # if debug_counter_1 >= 1000 or debug_counter_2 >= 1000:
+            #print("AGAIN: ", END='')
             # jezeli punkt nie spelnia ograniczen, to
             # w przypadku pierwszego punktu losowanie tego punktu jest powtarzane
             if point.getID() == 0 and again:
@@ -94,6 +96,12 @@ class Complex():
                 # p = point.get().copy()
                 # tabX.append(p[0])
                 # tabY.append(p[1])
+
+                # debug_counter_1 += 1
+                # if debug_counter_1 >= 1000:
+                #     print("PSUJE SIE PRZY PIERWSZYM PUNKCIE PO PROBACH", debug_counter_1)
+                #     break
+
                 new_x = []
                 for it in range(0, self.xCount):
                     l = cubeConstraints[it][0]
@@ -105,6 +113,10 @@ class Complex():
             # jezeli punkt nie spelnia ograniczen, to
             # w przypadku kazdego innego punktu jest on przesuwany w strone centrum zaakceptowanych juz punktow o polowe odleglosci
             elif point.getID() != 0 and again:
+                # debug_counter_2 += 1
+                # if debug_counter_2 >= 100:
+                #     #print("Tutaj sie psuje 2, po ", debug_counter_2)
+                #     break
                 self.moveHalfwayToCentrum(point)
 
             # Funkcja zwraca wartosci:
@@ -183,7 +195,7 @@ class Complex():
 
             # dopoki odbity punkt nie znajduje sie w obszarze dopuszczalnym
             # to bedzie poprawiany wewnatrz petli
-            tmpcounter = 0
+            # krok_7_counter = 0
             while not(self.checkConstraints(ten_konkretny_point, constraintsFuns, cubeConstraints)):
                 # self.plotPolygon(objFunction)
                 # KROK 7
@@ -192,7 +204,11 @@ class Complex():
                 con = self.checkWhichConstraints(
                     ten_konkretny_point, constraintsFuns, cubeConstraints)
 
-                # print("Krok 7, ", con)
+                # krok_7_counter += 1
+                # if krok_7_counter >= 1000:
+                #     print("PSUJE SIE W KROKU 7, ", con)
+                #     break
+
                 match con:
                     case 'functions':
                         # przesuniecie do centroidu o polowe odleglosci
@@ -211,8 +227,13 @@ class Complex():
             # dopoki odbity punkt nadal jest tym najgorszym
             # to jest przesuwany w kierunku centroidu
 
+            contract_counter = 0
             while ten_konkretny_point == new_worst_point:
-
+                contract_counter += 1
+                if contract_counter >= 5:
+                    self.addPointToComplex(constraintsFuns, cubeConstraints)
+                    #print("PSUJE SIE PRZY CONTRACT GDY ODBITY PUNKT NADAL JEST NAJGORSZY")
+                    break
                 self.contract(ten_konkretny_point, centroid)
 
                 # znajdz, jaki teraz jest najgorszy punkt
@@ -223,11 +244,11 @@ class Complex():
 
             counter += 1
             if counter == max_it:
-                print("Osiągnięto limit iteracji")
+                print("Osiągnięto limit iteracji.")
                 break
             if counter % 500 == 0:
                 # print("Counter ", counter)
-                self.plotPolygon(objFunction)
+                # self.plotPolygon(objFunction)
                 self.addPointToComplex(constraintsFuns, cubeConstraints)
                 # self.plotPolygon(objFunction)
 

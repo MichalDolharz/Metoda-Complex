@@ -47,12 +47,14 @@ def okienko():
             if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
                 break
             if event == "Dodaj-kostka":
+                # sprawdzenie czy można uruchomić
                 if len(cubeConstr_list_print) == 5:
                     sg.Print(f'Wprowadzono już limit ograniczeń kostki!')
                     continue
                 if str(values['LowerConstr']) == "" or str(values['UpperConstr']) == "":
                     sg.Print(f'Nie wprowadzono ograniczenia/ń zmiennej!')
                     continue
+
                 print('Dodano ograniczenie kostki')
                 cubeConstraints.append(
                     [float(values['LowerConstr']), float(values['UpperConstr'])])
@@ -60,19 +62,20 @@ def okienko():
                 window['List-kostka'].update(cubeConstr_list_print)
 
             if event == "Dodaj-funkcja":
+                # sprawdzenie czy można uruchomić
                 if len(constraintsFuns_print) == 5:
                     sg.Print(f'Wprowadzono już limit ograniczeń funkcyjnych!')
                     continue
                 if str(values['-funConstr-']) == "":
                     sg.Print(f'Nie wprowadzono ograniczenia funkcyjnego!')
                     continue
+
                 print('Dodano ograniczenie funkcyjne')
                 constraintsFuns_print.append(values['-funConstr-'])
                 constraintsFunsString.append(
                     getFunctionString(values['-funConstr-']))
-                # constraintsFuns.append(getFunction(values['-funConstr-']))
-
                 window['List-funkcje'].update(constraintsFuns_print)
+                window['-funConstr-'].update("")
 
             # Uruchomnienie algorytmu
             if event == "Uruchom":
@@ -80,12 +83,12 @@ def okienko():
                     clear_canvas(figure)
 
                 plt.clf()
+                
+                # sprawdzenie czy można uruchomić
                 if len(cubeConstraints) < 2:
                     sg.Print(
                         f'Wprowadź ograniczenia zmiennych!')
                     continue
-
-                print("Uruchomiono algorytm")
 
                 if (not(values["xmax"]) and values["xmin"]) or (not(values["xmin"]) and values["xmax"]):
                     sg.Print(
@@ -95,7 +98,11 @@ def okienko():
                     sg.Print(
                         f'Wprowadź oba ustawienia wykresu dla osi OY albo pozostaw pola puste dla wartości automatycznych!')
                     continue
+                
+                # algorytm
+                print("Uruchomiono algorytm")
 
+                # inicjacja granic wyświetlanego wykresu
                 if not(values["xmax"]):
                     window["xmax"].update(str(cubeConstraints[0][1]))
                     values["xmax"] = cubeConstraints[0][1]
@@ -120,7 +127,7 @@ def okienko():
                 epsilon = float(values['-epsilon-'])
                 max_it = float(values['-max-it-'])
 
-                # parsowanie funkcji
+                # parsowanie funkcji i zwracanie ilości zmiennych
                 objectiveFun, amount_of_xs = getFunction(values['combo-objFun'])
 
                 if not (amount_of_xs <= len(cubeConstraints)):
@@ -143,12 +150,12 @@ def okienko():
                 print("\nZnaleziony optymalny punkt:")
                 best_point.display(mode="multirow")
                 print("\nWartość funkcji celu dla znalezionego punktu:")
-                print(kompleks.getFmin(objectiveFun))
+                print("", kompleks.getFmin(objectiveFun))
                 print("\nWartość funkcji ograniczeń dla znalezionego punktu:")
                 for it in range(0, len(constraintsFuns)):
-                    print("g" +str(it+1) + ":", kompleks.constFunValue(constraintsFuns[it], best_point))
+                    print(" g" +str(it+1) + ":", kompleks.constFunValue(constraintsFuns[it], best_point))
 
-                # rysowanie wykresu
+                # rysowanie wykresu jeżeli funkcja celu ma dwie zmienne
                 if amount_of_xs == 2:
                     kompleks.plotPolygon(
                         objectiveFun, constraintsFunsString, cubeConstraints, printing=False)
@@ -163,6 +170,8 @@ def okienko():
                     window["slider-kroki"].update(range=(0, 0))
                     window["slider-kroki"].update(range=(0, len(step_prog)))
                     window['-kroki-'].update(len(step_prog))
+
+                # w przeciwnym przypadku nie rysujemy wyresów
                 else:
                     window['-kroki-'].update("Kroki wyświetlane tylko dla funkcji dwóch zmiennych")
                     plt.text(0, 0, "Brak wykresu", size=30, rotation=0,
@@ -183,21 +192,33 @@ def okienko():
                 if(figure):
                     clear_canvas(figure)
 
-                plt.clf()
-                # if not (ax_complex  == None):
-                #     ax_complex.cla()
-                krok = int(values['slider-kroki'])
-                krok_minus = krok - 1
-                # print("Wyświetlam krok", krok)
-                # window['-wys-krok-'].update(krok)
+                    plt.clf()
+                    krok = int(values['slider-kroki'])
+                    krok_minus = krok - 1
+                    step_prog[krok_minus].plotPolygon(
+                        objectiveFun, constraintsFunsString, cubeConstraints, printing=False)
+                    makeKolorki(objectiveFun, values)
+                    plt.xlim(float(values["xmin"]), float(values["xmax"]))
+                    plt.ylim(float(values["ymin"]), float(values["ymax"]))
+                    figure = draw_figure(
+                        window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
 
-                step_prog[krok_minus].plotPolygon(
-                    objectiveFun, constraintsFunsString, cubeConstraints, printing=False)
-                makeKolorki(objectiveFun, values)
-                plt.xlim(float(values["xmin"]), float(values["xmax"]))
-                plt.ylim(float(values["ymin"]), float(values["ymax"]))
-                figure = draw_figure(
-                    window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
+            # obsluga przycisku odzwiez, który aktualizuje wykres wzgledem ustawien
+            # bez uruchamiania algorytmu
+            if event == "odswiez-wykres":
+                if(figure):
+                    clear_canvas(figure)
+                    plt.clf()
+                    krok = int(values['slider-kroki'])
+                    krok_minus = krok - 1
+                    step_prog[krok_minus].plotPolygon(
+                        objectiveFun, constraintsFunsString, cubeConstraints, printing=False)
+                    makeKolorki(objectiveFun, values)
+                    plt.xlim(float(values["xmin"]), float(values["xmax"]))
+                    plt.ylim(float(values["ymin"]), float(values["ymax"]))
+                    figure = draw_figure(
+                        window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
+                
 
             # usuwanie zaznaczonego przedziału w liscie ogr. kostki
             if event == 'Usun-kostka' and values['List-kostka']:
@@ -219,19 +240,19 @@ def okienko():
             if event == "Wyczysc-logi":
                 window['logi'].update('')
 
+        # obsluga bledow
         except Exception as e:
             tb = traceback.format_exc()
             sg.Print(f'An error happened.  Here is the info:', e, tb)
-            # sg.popup_error(f'AN EXCEPTION OCCURRED!', e, tb)
 
     window.close()
 
-
+# funkcja do tworzenia i wyswietlania warstwicy funkcji felu na aktualnym wykresie
 def makeKolorki(objectiveFun, values):
     plt.xlim(float(values["xmin"]), float(values["xmax"]))
     plt.ylim(float(values["ymin"]), float(values["ymax"]))
     xmin, xmax = plt.xlim()
-    ymin, ymax = plt.ylim()
+    ymin, ymax = plt.ylim()     
     x = np.linspace(xmin, xmax)
     y = np.linspace(ymin, ymax)
     X, Y = np.meshgrid(x, y)
@@ -246,9 +267,8 @@ def makeKolorki(objectiveFun, values):
 
     plt.colorbar()
 
-
+# main
 def main():
-
     okienko()
 
 
