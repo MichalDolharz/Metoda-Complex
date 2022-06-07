@@ -203,6 +203,7 @@ class Complex():
 
         # print("Centroid znajduje sie poza obszarzem dopuszczalnym.")
         again = True
+        errorFlag = False
         tmp_coounter = 0
         while again:
             x = []
@@ -227,11 +228,12 @@ class Complex():
                               cubeConstraints, objFunction, c_fun="centroid")
 
                 if self.pointsCount >= 100:
-                    print("Algorytm stworzył", self.pointsCount,
+                    print("\nAlgorytm stworzył", self.pointsCount,
                           "punktów Complexu osiagając limit.")
                     print(
                         "Centroid nie może wydostać się z obszaru niedopuszczalnego.")
                     print("Spróbuj uruchomić algorytm jeszcze raz.")
+                    return False
                     break
 
                 worst_point = self.getWorstPoint(objFunction)
@@ -241,7 +243,7 @@ class Complex():
                 if self.checkConstraints(centroid, constraintsFuns,
                                          cubeConstraints):
                     # print("UDAŁO SIĘ WYCIAGNĄĆ CENTROID")
-                    return
+                    return True
                 # Jeżeli teraz centroid nie znajduje się w obszarze dop, to dodajemy punkt
                 else:
                     again = True
@@ -297,13 +299,16 @@ class Complex():
                 #     constraintsFuns, cubeConstraints, objFunction)
                 # centroid.display()
                 # print()
-                self.correctCentroid(
-                    constraintsFuns, cubeConstraints, objFunction)
-                # debug_counter_c += 1
-                ten_konkretny_point = self.getWorstPoint(objFunction)
-                centroid = self.centroid(ten_konkretny_point)
-                # centroid.display()
-                # continue
+                if self.correctCentroid(
+                        constraintsFuns, cubeConstraints, objFunction):
+                    # debug_counter_c += 1
+                    ten_konkretny_point = self.getWorstPoint(objFunction)
+                    centroid = self.centroid(ten_konkretny_point)
+                    # centroid.display()
+                    # continue
+                else:
+                    errorFlag = True
+                    break
 
             # KROK 6
             # print("krok 6")
@@ -323,7 +328,7 @@ class Complex():
                     ten_konkretny_point, constraintsFuns, cubeConstraints)
 
                 krok_7_counter += 1
-                if krok_7_counter >= 100:
+                if krok_7_counter >= 101:
                     #     print("\nPSUJE SIE W KROKU 7, ", con)
                     #     print("centroid:", self.checkConstraints(
                     #         centroid, constraintsFuns, cubeConstraints), end='')
