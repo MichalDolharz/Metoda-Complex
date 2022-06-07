@@ -83,7 +83,7 @@ def okienko():
                     clear_canvas(figure)
 
                 plt.clf()
-                
+
                 # sprawdzenie czy można uruchomić
                 if len(cubeConstraints) < 2:
                     sg.Print(
@@ -98,9 +98,9 @@ def okienko():
                     sg.Print(
                         f'Wprowadź oba ustawienia wykresu dla osi OY albo pozostaw pola puste dla wartości automatycznych!')
                     continue
-                
+
                 # algorytm
-                print("Uruchomiono algorytm")
+                print("\nUruchomiono algorytm")
 
                 # inicjacja granic wyświetlanego wykresu
                 if not(values["xmax"]):
@@ -125,10 +125,11 @@ def okienko():
 
                 # przypisywanie wartości z okna do zmiennych
                 epsilon = float(values['-epsilon-'])
-                max_it = float(values['-max-it-'])
+                max_it = int(values['-max-it-'])
 
                 # parsowanie funkcji i zwracanie ilości zmiennych
-                objectiveFun, amount_of_xs = getFunction(values['combo-objFun'])
+                objectiveFun, amount_of_xs = getFunction(
+                    values['combo-objFun'])
 
                 if not (amount_of_xs <= len(cubeConstraints)):
                     sg.Print(
@@ -145,7 +146,7 @@ def okienko():
                 kompleks = Complex()
                 kompleks.fill(cubeConstraints, constraintsFuns,
                               objectiveFun, epsilon)
-                best_point, step_prog = kompleks.run(
+                best_point, step_prog, errorFlag = kompleks.run(
                     objectiveFun, constraintsFuns, cubeConstraints, max_it)
                 print("\nZnaleziony optymalny punkt:")
                 best_point.display(mode="multirow")
@@ -153,7 +154,14 @@ def okienko():
                 print("", kompleks.getFmin(objectiveFun))
                 print("\nWartość funkcji ograniczeń dla znalezionego punktu:")
                 for it in range(0, len(constraintsFuns)):
-                    print(" g" +str(it+1) + ":", kompleks.constFunValue(constraintsFuns[it], best_point))
+                    print(" g" + str(it+1) + ":",
+                          kompleks.constFunValue(constraintsFuns[it], best_point))
+                if errorFlag:
+                    print("\nUWAGA!")
+                    print("Algorytm nie zakończył działania poprzez kryterium stopu.")
+                    print("Znaleziony punkt może nie być rozwiązaniem.")
+                    print(
+                        "Sprawdź komunikaty powyżej, aby dowiedzieć się, co było przyczyną.")
 
                 # rysowanie wykresu jeżeli funkcja celu ma dwie zmienne
                 if amount_of_xs == 2:
@@ -173,19 +181,18 @@ def okienko():
 
                 # w przeciwnym przypadku nie rysujemy wyresów
                 else:
-                    window['-kroki-'].update("Kroki wyświetlane tylko dla funkcji dwóch zmiennych")
+                    window['-kroki-'].update(
+                        "Kroki wyświetlane tylko dla funkcji dwóch zmiennych")
                     plt.text(0, 0, "Brak wykresu", size=30, rotation=0,
-                    ha="center", va="center",
-                    color="#FDCB52",
-                    bbox=dict(boxstyle="round",
-                            ec="#2C2825",
-                            fc="#705E52",
-                            )
-                    )
+                             ha="center", va="center",
+                             color="#FDCB52",
+                             bbox=dict(boxstyle="round",
+                                       ec="#2C2825",
+                                       fc="#705E52",
+                                       )
+                             )
                     figure = draw_figure(
                         window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
-
-                
 
             # obsluga poruszania slajderem
             if event == "slider-kroki":
@@ -218,7 +225,6 @@ def okienko():
                     plt.ylim(float(values["ymin"]), float(values["ymax"]))
                     figure = draw_figure(
                         window['-PLOT_CANV-'].TKCanvas, plt.gcf(), values)
-                
 
             # usuwanie zaznaczonego przedziału w liscie ogr. kostki
             if event == 'Usun-kostka' and values['List-kostka']:
@@ -248,11 +254,13 @@ def okienko():
     window.close()
 
 # funkcja do tworzenia i wyswietlania warstwicy funkcji felu na aktualnym wykresie
+
+
 def makeKolorki(objectiveFun, values):
     plt.xlim(float(values["xmin"]), float(values["xmax"]))
     plt.ylim(float(values["ymin"]), float(values["ymax"]))
     xmin, xmax = plt.xlim()
-    ymin, ymax = plt.ylim()     
+    ymin, ymax = plt.ylim()
     x = np.linspace(xmin, xmax)
     y = np.linspace(ymin, ymax)
     X, Y = np.meshgrid(x, y)
@@ -260,7 +268,8 @@ def makeKolorki(objectiveFun, values):
     Z = np.array(Z)
     Z = np.reshape(Z, (len(x), len(y)))
 
-    cnt = plt.contourf(X, Y, Z, extend='both', levels=500, cmap="rainbow", alpha=0.8)
+    cnt = plt.contourf(X, Y, Z, extend='both', levels=500,
+                       cmap="rainbow", alpha=0.8)
     for c in cnt.collections:
         c.set_edgecolor("none")
         c.set_linewidth(0.00000000000000000000000001)
@@ -268,6 +277,8 @@ def makeKolorki(objectiveFun, values):
     plt.colorbar()
 
 # main
+
+
 def main():
     okienko()
 

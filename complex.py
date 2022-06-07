@@ -1,5 +1,5 @@
 from contextlib import AbstractAsyncContextManager
-from re import A
+from re import A, T
 import matplotlib.pyplot as plt
 import numpy as np
 from point import Point
@@ -66,13 +66,15 @@ class Complex():
 
             tmp_point = Point(x, point_it)
 
-            self.addPoint(tmp_point, constraintsFuns, cubeConstraints)
+            self.addPoint(tmp_point, constraintsFuns,
+                          cubeConstraints, objFunction, c_fun="centrum")
 
     # Dodaje podany punkt do complexu. Sprawdza, czy znajduje sie w obszarze dopuszczalnym, jezeli nie, to go poprawia
 
-    def addPoint(self, point, constraintsFuns, cubeConstraints):
+    def addPoint(self, point, constraintsFuns, cubeConstraints, objFunction, c_fun):
 
-        point = self.correctPoint(point, constraintsFuns, cubeConstraints)
+        point = self.correctPoint(
+            point, constraintsFuns, cubeConstraints, objFunction, c_fun)
         self.points.append(
             Point(point.get(), point.getID()))
         # point.display()
@@ -81,14 +83,21 @@ class Complex():
     # Sprawdza, czy podany punkt znajduje sie w obszarze dopuszczalnym,
     #   – jezeli nie, to go poprawia i zwraca
     #   – jezeli tak, to po prostu go zwraca bez zmian
-    def correctPoint(self, point, constraintsFuns, cubeConstraints):
+    def correctPoint(self, point, constraintsFuns, cubeConstraints, objFunction, c_fun):
         # sprawdzenie, czy wylosowane wspolrzedne znajduja sie w obszarze ograniczonym funkcjami
-        again = True
-        # debug_counter_1 = 0
-        # debug_counter_2 = 0
+        again = not(self.checkConstraints(
+            point, constraintsFuns, cubeConstraints))
+        debug_counter_1 = 0
+        movesCounter = 0
+        # print("Punkt przed poprawą: ", end='')
+        # point.display()
+        # print()
         while again:  # x_var_it <= self.x_variables:
-            # if debug_counter_1 >= 1000 or debug_counter_2 >= 1000:
-            #print("AGAIN: ", END='')
+            # debug_counter_1 += debug_counter_1
+            # if debug_counter_1 >= 100:
+            #     print("Tutaj coś nie gra")
+            #     break
+            # print("AGAIN: ", END='')
             # jezeli punkt nie spelnia ograniczen, to
             # w przypadku pierwszego punktu losowanie tego punktu jest powtarzane
             if point.getID() == 0 and again:
@@ -99,7 +108,8 @@ class Complex():
 
                 # debug_counter_1 += 1
                 # if debug_counter_1 >= 1000:
-                #     print("PSUJE SIE PRZY PIERWSZYM PUNKCIE PO PROBACH", debug_counter_1)
+                #     print("PSUJE SIE PRZY PIERWSZYM PUNKCIE PO PROBACH",
+                #           debug_counter_1)
                 #     break
 
                 new_x = []
@@ -113,11 +123,40 @@ class Complex():
             # jezeli punkt nie spelnia ograniczen, to
             # w przypadku kazdego innego punktu jest on przesuwany w strone centrum zaakceptowanych juz punktow o polowe odleglosci
             elif point.getID() != 0 and again:
-                # debug_counter_2 += 1
-                # if debug_counter_2 >= 100:
-                #     #print("Tutaj sie psuje 2, po ", debug_counter_2)
-                #     break
-                self.moveHalfwayToCentrum(point)
+                if c_fun == "centroid":
+
+                    worst_point = self.getWorstPoint(objFunction)
+                    centroid = self.centroid(worst_point)
+                    self.moveHalfwayToCentroid(point, centroid)
+                elif c_fun == "centrum":
+                    self.moveHalfwayToCentrum(point)
+                else:
+                    "BŁĄD W KODZIE #1"
+
+                # print("Jeżeli jest False, to punkt lezy w obszarze niedopuszczalnym:",
+                #       self.checkConstraints(point, constraintsFuns, cubeConstraints))
+
+                movesCounter += 1
+                if movesCounter >= 10:
+
+                    # print("Algorytm na razie stworzył", self.pointsCount,
+                    #       "punktów.")
+
+                    # print("Algorytm", movesCounter,
+                    #       "razy poprawiał punkt przesuwając go do 'c'")
+                    worst_point = self.getWorstPoint(objFunction)
+                    c_p = self.centroid(worst_point)
+                    # print("Jeżeli jest False, to 'c'' lezy w obszarze niedopuszczalnym:",
+                    #       self.checkConstraints(c_p, constraintsFuns, cubeConstraints))
+
+                    c = c_p.get()
+
+                    point.set(c)
+
+                    # print("Jeżeli jest False, to punkt lezy w obszarze niedopuszczalnym:",
+                    #       self.checkConstraints(point, constraintsFuns, cubeConstraints))
+
+                    break
 
             # Funkcja zwraca wartosci:
             #   – True, jezeli punkt spelnia warunki ograniczen
@@ -125,6 +164,9 @@ class Complex():
             again = not(self.checkConstraints(
                 point, constraintsFuns, cubeConstraints))
 
+        # print("Punkt został poprawiony i teraz, jeżeli jest False, to punkt lezy w obszarze niedopuszczalnym:",
+        #       self.checkConstraints(point, constraintsFuns, cubeConstraints))
+        # print()
         # circleX = np.linspace(-3, -1, 50)
         # print(circleX)
         # circleY1 = []
@@ -143,7 +185,7 @@ class Complex():
         # jezeli punkt spelnia ograniczenia, to program wychodzi z petli while i zwraca ten punkt
         return point
 
-    def addPointToComplex(self, constraintsFuns, cubeConstraints):
+    def addPointToComplex(self, constraintsFuns, cubeConstraints, objFunction):
         x = []
 
         for x_it in range(0, self.xCount):
@@ -154,21 +196,86 @@ class Complex():
         # jako ID wystarczy podac aktualna liczbe punktow, poniewaz ID jest liczone od zera
         tmp_point = Point(x, self.pointsCount)
 
-        self.addPoint(tmp_point, constraintsFuns, cubeConstraints)
+        self.addPoint(tmp_point, constraintsFuns,
+                      cubeConstraints, objFunction, c_fun="centroid")
 
-    # uruchamia algorytm
+    def correctCentroid(self, constraintsFuns, cubeConstraints, objFunction):
+
+        # print("Centroid znajduje sie poza obszarzem dopuszczalnym.")
+        again = True
+        tmp_coounter = 0
+        while again:
+            x = []
+            # tmp_coounter += 1
+            # if tmp_coounter >= 1000:
+            #     print(tmp_coounter, "razy nie udało się poprawić centroidu")
+            #     break
+
+            for x_it in range(0, self.xCount):
+                l = cubeConstraints[x_it][0]
+                u = cubeConstraints[x_it][1]
+                x.append(np.random.uniform(l, u))
+
+            tmp_point = Point(x, self.pointsCount)
+
+            # Jeżeli zwróci True, to punkt znajduje sie w obszarze dopuszczalnym
+            if self.checkConstraints(tmp_point, constraintsFuns,
+                                     cubeConstraints):
+
+                # print("Dodaję punkt aby wyciągnąć centroid")
+                self.addPoint(tmp_point, constraintsFuns,
+                              cubeConstraints, objFunction, c_fun="centroid")
+
+                if self.pointsCount >= 100:
+                    print("Algorytm stworzył", self.pointsCount,
+                          "punktów Complexu osiagając limit.")
+                    print(
+                        "Centroid nie może wydostać się z obszaru niedopuszczalnego.")
+                    print("Spróbuj uruchomić algorytm jeszcze raz.")
+                    break
+
+                worst_point = self.getWorstPoint(objFunction)
+                centroid = self.centroid(worst_point)
+
+                # Jeżeli teraz centroid znajduje się w obszarze dopuszczalnym, to koniec funkcji
+                if self.checkConstraints(centroid, constraintsFuns,
+                                         cubeConstraints):
+                    # print("UDAŁO SIĘ WYCIAGNĄĆ CENTROID")
+                    return
+                # Jeżeli teraz centroid nie znajduje się w obszarze dop, to dodajemy punkt
+                else:
+                    again = True
+                    # print("Dodany punkt nie wyciągnął")
+            # Jeżeli nie zwróciło True, to puynkt znajduje sie poza obszarem dopuszczalnym
+            else:
+                again = True
+
+            # uruchamia algorytm
 
     def run(self, objFunction, constraintsFuns, cubeConstraints, max_it):
 
         counter = 0
         step_program = []
+        errorFlag = False
+
+        # print("max iteracji: ", max_it)
 
         # KROK 2,3
         tmpcounter2 = 0
+        debug_counter_c = 0
         # dopoki warunek stopu nie jest spelniony
         while (self.convergence() == False):
             # self.plotPolygon(objFunction)
             # self.display()
+            # print("kolejna iteracja")
+
+            if self.pointsCount >= 100:
+                print("Algorytm stworzył", self.pointsCount,
+                      "punktów Complexu osiagając limit.")
+                print("Prawdopodobnie powstało niefortunne ułożenie punktów.")
+                print("Spróbuj uruchomić algorytm jeszcze raz.")
+                errorFlag = True
+                break
 
             # KROK 4
             # znajdz najgorszy punkt
@@ -178,14 +285,25 @@ class Complex():
             # ten_konkretny_point.display()
 
             # KROK 5
+            # print("krok 5")
             # znajdz centroid
             centroid = self.centroid(ten_konkretny_point)
 
             # sprawdz, czy centroid znajduje sie w obszarze dopuszczalnym
             # jezeli nie, to dodaje punkt i wraca do poczatku petli
             if not(self.checkFunConstraints(centroid, constraintsFuns)):
-                self.addPointToComplex(constraintsFuns, cubeConstraints)
-                continue
+                # print( "\nDodaję punkt ze względu na położenie centroidu poza obszarem dopuszczalnym")
+                # self.addPointToComplex(
+                #     constraintsFuns, cubeConstraints, objFunction)
+                # centroid.display()
+                # print()
+                self.correctCentroid(
+                    constraintsFuns, cubeConstraints, objFunction)
+                # debug_counter_c += 1
+                ten_konkretny_point = self.getWorstPoint(objFunction)
+                centroid = self.centroid(ten_konkretny_point)
+                # centroid.display()
+                # continue
 
             # KROK 6
             # print("krok 6")
@@ -195,7 +313,7 @@ class Complex():
 
             # dopoki odbity punkt nie znajduje sie w obszarze dopuszczalnym
             # to bedzie poprawiany wewnatrz petli
-            # krok_7_counter = 0
+            krok_7_counter = 0
             while not(self.checkConstraints(ten_konkretny_point, constraintsFuns, cubeConstraints)):
                 # self.plotPolygon(objFunction)
                 # KROK 7
@@ -204,10 +322,14 @@ class Complex():
                 con = self.checkWhichConstraints(
                     ten_konkretny_point, constraintsFuns, cubeConstraints)
 
-                # krok_7_counter += 1
-                # if krok_7_counter >= 1000:
-                #     print("PSUJE SIE W KROKU 7, ", con)
-                #     break
+                krok_7_counter += 1
+                if krok_7_counter >= 100:
+                    #     print("\nPSUJE SIE W KROKU 7, ", con)
+                    #     print("centroid:", self.checkConstraints(
+                    #         centroid, constraintsFuns, cubeConstraints), end='')
+                    #     centroid.display()
+                    #     self.display()
+                    break
 
                 match con:
                     case 'functions':
@@ -231,8 +353,12 @@ class Complex():
             while ten_konkretny_point == new_worst_point:
                 contract_counter += 1
                 if contract_counter >= 5:
-                    self.addPointToComplex(constraintsFuns, cubeConstraints)
-                    #print("PSUJE SIE PRZY CONTRACT GDY ODBITY PUNKT NADAL JEST NAJGORSZY")
+                    self.addPointToComplex(
+                        constraintsFuns, cubeConstraints, objFunction)
+                    # print(
+                    #     "PSUJE SIE PRZY CONTRACT GDY ODBITY PUNKT NADAL JEST NAJGORSZY")
+                    # print(
+                    #     "Dodaję punkt do complexu ze względu na najgorszy punkt po odbiciu")
                     break
                 self.contract(ten_konkretny_point, centroid)
 
@@ -244,12 +370,14 @@ class Complex():
 
             counter += 1
             if counter == max_it:
-                print("Osiągnięto limit iteracji.")
+                print("\nOsiągnięto limit iteracji:", max_it)
                 break
             if counter % 500 == 0:
-                # print("Counter ", counter)
+                # print("Counter iteracji", counter)
+                # print("Dodaję punkt do complexu ze względu na licznik iteracji")
                 # self.plotPolygon(objFunction)
-                self.addPointToComplex(constraintsFuns, cubeConstraints)
+                self.addPointToComplex(
+                    constraintsFuns, cubeConstraints, objFunction)
                 # self.plotPolygon(objFunction)
 
             step_program.append(deepcopy(self))
@@ -259,7 +387,7 @@ class Complex():
         best_point = self.getBestPoint(objFunction)
         print("\nLiczba iteracji algorytmu:", counter)
         print("Liczba punktów na koniec:", self.pointsCount)
-        return best_point, step_program
+        return best_point, step_program, errorFlag
 
     def weights(self, objFunction):
         x1, x2, x3, x4, x5 = point.get_xi()

@@ -80,6 +80,7 @@ class Point():
     # zwraca wartości każdej wspolrzednej punktu osobno
     def get_xi(self):
         tmp = self.get()
+        # self.display()
         match len(self.get()):
             case 1:
                 return tmp[0], None, None, None, None
